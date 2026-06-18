@@ -38,7 +38,7 @@ func (a *Application) SetupRoutes() {
 	// Log Registered Routes for Debugging
 	for _, route := range router.Routes() {
 		if a.BaseApp != nil {
-			a.BaseApp.Logger.Printf("Registered route: %s %s", route.Method, route.Path)
+			a.BaseApp.Logger.Infof("Registered route: %s %s", route.Method, route.Path)
 		} else {
 			fmt.Printf("Registered route: %s %s\n", route.Method, route.Path)
 		}

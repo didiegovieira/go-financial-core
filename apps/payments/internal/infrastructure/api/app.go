@@ -39,14 +39,14 @@ func (a *Application) Start() {
 		defer cancel()
 
 		if err := a.Server.Shutdown(shutdownCtx); err != nil {
-			a.BaseApp.Logger.Printf("Server forced to shutdown: %v", err)
+			a.BaseApp.Logger.Infof("Server forced to shutdown: %v", err)
 		}
 	}()
 
 	if err := a.Server.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		a.BaseApp.Logger.Printf("Failed to start server: %v", err)
+		a.BaseApp.Logger.Infof("Failed to start server: %v", err)
 	}
 
-	a.BaseApp.Logger.Println("Server exited properly")
+	a.BaseApp.Logger.Infof("Server exited properly")
 	a.BaseApp.Stop()
 }

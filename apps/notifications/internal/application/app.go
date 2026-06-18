@@ -1,28 +1,30 @@
 package application
 
 import (
-	"log"
-
+	"github.com/didiegovieira/go-payments-core/apps/notifications/internal/settings"
+	"github.com/didiegovieira/go-payments-core/pkg/log"
+	"github.com/didiegovieira/go-payments-core/pkg/log/implement"
+	"github.com/didiegovieira/go-payments-core/pkg/metrics"
 	"go.opentelemetry.io/otel/trace"
 )
 
 type App struct {
-	Logger log.Logger
+	Logger implement.Logger
 	Tracer trace.Tracer
 }
 
 func (a *App) Start(serviceName string) {
-	// log2.Logger = a.Logger
+	log.Logger = a.Logger
 
-	// if settings.Settings.IsLocal() {
-	// 	metrics2.Tracer = trace.NewNoopTracerProvider().Tracer("local")
-	// } else {
-	// 	metrics2.Tracer = a.Tracer
-	// }
+	if settings.Settings.IsLocal() {
+		metrics.Tracer = trace.NewNoopTracerProvider().Tracer("local")
+	} else {
+		metrics.Tracer = a.Tracer
+	}
 
-	// a.Logger.Tag("service", serviceName)
+	a.Logger.Tag("service", serviceName)
 }
 
 func (a *App) Stop() {
-	a.Logger.Println("Application stopping")
+	a.Logger.Infof("Application stopping")
 }

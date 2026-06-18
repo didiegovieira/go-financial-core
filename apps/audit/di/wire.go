@@ -8,24 +8,12 @@ import (
 	"github.com/google/wire"
 )
 
-var wireApiSet = wire.NewSet(
-
-// wire.Struct(new(messaging.Application), "*"),
-)
-
-var wireTestSet = wire.NewSet(
-
-// wire.Struct(new(api.Application), "*"),
-// wire.Struct(new(test.Application), "*"),
+var wireWorkerSet = wire.NewSet(
+	wireCommonSet,
+	wire.Struct(new(messaging.Application), "*"),
 )
 
 func InitializeWorker() (*messaging.Application, func(), error) {
-	wire.Build(wireApiSet)
+	wire.Build(wireWorkerSet)
 	return &messaging.Application{}, func() {}, nil
 }
-
-// func InitilizeTests(mockCtrl *gomock.Controller) (*test.Application, func(), error) {
-// 	wire.Build(wireTestSet)
-
-// 	return &test.Application{}, func() {}, nil
-// }

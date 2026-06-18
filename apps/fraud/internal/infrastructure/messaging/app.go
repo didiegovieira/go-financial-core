@@ -11,26 +11,18 @@ import (
 )
 
 type Application struct {
-	BaseApp  *application.App
-	Consumer *Consumer // seu Kafka consumer
+	BaseApp *application.App
 }
 
 func (a *Application) Start() {
 	a.BaseApp.Start(settings.Settings.Metrics.Name)
+	a.BaseApp.Logger.Infof("Notifications worker started")
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	go func() {
-		<-ctx.Done()
-		a.Consumer.Stop()
-	}()
+	<-ctx.Done()
 
-	a.Consumer.Start()
-	a.BaseApp.Logger.Println("Worker exited properly")
-}
-
-func (a *Application) Stop() {
-	a.Consumer.Stop()
+	a.BaseApp.Logger.Infof("Notifications worker stopping")
 	a.BaseApp.Stop()
 }
