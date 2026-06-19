@@ -27,9 +27,9 @@ type (
 	DatabaseSpecification struct {
 		Host     string `envconfig:"DB_HOST" default:"localhost"`
 		Port     int    `envconfig:"DB_PORT" default:"5432"`
-		User     string `envconfig:"DB_USER" default:"payments_user"`
-		Password string `envconfig:"DB_PASSWORD" default:"payments_pass"`
-		Name     string `envconfig:"DB_NAME" default:"payments"`
+		User     string `envconfig:"DB_USER" default:"postgres"`
+		Password string `envconfig:"DB_PASSWORD" default:"postgres"`
+		Name     string `envconfig:"DB_NAME" default:"payments_db"`
 	}
 
 	KafkaSpecification struct {
