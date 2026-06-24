@@ -29,7 +29,7 @@ var wireTestSet = wire.NewSet(
 	wire.Struct(new(test.Application), "*"),
 )
 
-func InitializeWorker() (*api.Application, func(), error) {
+func InitializeApi() (*api.Application, func(), error) {
 	wire.Build(wireApiSet)
 	return &api.Application{}, func() {}, nil
 }

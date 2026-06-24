@@ -8,21 +8,48 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-var Tracer trace.Tracer
+var Tracer trace.Tracer = trace.NewNoopTracerProvider().Tracer("noop")
 
 // Core tracing functions
-func StartSpan(ctx context.Context, spanName string) (context.Context, trace.Span) {
-	return Tracer.Start(ctx, spanName)
+func StartSpan(ctx context.Context, spanName string, opts ...trace.SpanStartOption) (context.Context, trace.Span) {
+	return tracer().Start(ctx, spanName, opts...)
 }
 
 func StartSpanWithAttributes(ctx context.Context, spanName string, attrs ...trace.SpanStartOption) (context.Context, trace.Span) {
-	return Tracer.Start(ctx, spanName, attrs...)
+	return StartSpan(ctx, spanName, attrs...)
+}
+
+func Trace(ctx context.Context, spanName string, opts ...trace.SpanStartOption) (context.Context, func()) {
+	ctx, span := StartSpan(ctx, spanName, opts...)
+	return ctx, func() {
+		Finish(span, nil)
+	}
+}
+
+func TraceWithError(ctx context.Context, spanName string, err *error, opts ...trace.SpanStartOption) (context.Context, func()) {
+	ctx, span := StartSpan(ctx, spanName, opts...)
+	return ctx, func() {
+		if err == nil {
+			Finish(span, nil)
+			return
+		}
+
+		Finish(span, *err)
+	}
 }
 
 func Finish(span trace.Span, err error) {
-	if err != nil {
-		span.SetStatus(codes.Error, err.Error())
+	if span == nil {
+		return
 	}
+
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+	} else {
+		span.SetStatus(codes.Ok, "")
+	}
+
 	span.End()
 }
 
@@ -67,4 +94,12 @@ func AddSpanEvent(ctx context.Context, name string, attrs ...attribute.KeyValue)
 	if span.SpanContext().IsValid() {
 		span.AddEvent(name, trace.WithAttributes(attrs...))
 	}
+}
+
+func tracer() trace.Tracer {
+	if Tracer != nil {
+		return Tracer
+	}
+
+	return trace.NewNoopTracerProvider().Tracer("noop")
 }

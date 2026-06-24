@@ -8,8 +8,13 @@ package di
 
 import (
 	"github.com/didiegovieira/go-payments-core/apps/payments/internal/application"
+	"github.com/didiegovieira/go-payments-core/apps/payments/internal/application/usecase/payment"
+	"github.com/didiegovieira/go-payments-core/apps/payments/internal/application/usecase/wallet"
 	"github.com/didiegovieira/go-payments-core/apps/payments/internal/infrastructure/api"
 	"github.com/didiegovieira/go-payments-core/apps/payments/internal/infrastructure/api/handler"
+	payment2 "github.com/didiegovieira/go-payments-core/apps/payments/internal/infrastructure/api/handler/payment"
+	wallet2 "github.com/didiegovieira/go-payments-core/apps/payments/internal/infrastructure/api/handler/wallet"
+	"github.com/didiegovieira/go-payments-core/apps/payments/internal/infrastructure/api/middleware"
 	"github.com/didiegovieira/go-payments-core/apps/payments/internal/test"
 	"github.com/google/wire"
 	"go.uber.org/mock/gomock"
@@ -27,19 +32,35 @@ func InitializeApi() (*api.Application, func(), error) {
 	server := provideHttpServer()
 	apiServer := provideGinServer(server)
 	presenter := providePresenter()
+	cors := &middleware.Cors{
+		Presenter: presenter,
+	}
 	health := &handler.Health{
 		Presenter: presenter,
 	}
+	create := payment.NewCreate()
+	paymentCreate := &payment2.Create{
+		Presenter:     presenter,
+		CreateUseCase: create,
+	}
+	walletCreate := wallet.NewCreate()
+	create2 := &wallet2.Create{
+		Presenter:     presenter,
+		CreateUseCase: walletCreate,
+	}
 	apiApplication := &api.Application{
-		BaseApp:       app,
-		Server:        apiServer,
-		HealthHandler: health,
+		BaseApp:              app,
+		Server:               apiServer,
+		CorsMiddleware:       cors,
+		HealthHandler:        health,
+		PaymentCreateHandler: paymentCreate,
+		WalletCreateHandler:  create2,
 	}
 	return apiApplication, func() {
 	}, nil
 }
 
-func InitilizeTests(mockCtrl *gomock.Controller) (*test.Application, func(), error) {
+func InitializeTests(mockCtrl *gomock.Controller) (*test.Application, func(), error) {
 	logger := provideLogger()
 	tracer := provideTracer()
 	app := &application.App{
@@ -49,13 +70,29 @@ func InitilizeTests(mockCtrl *gomock.Controller) (*test.Application, func(), err
 	server := provideHttpServer()
 	apiServer := provideGinServer(server)
 	presenter := providePresenter()
+	cors := &middleware.Cors{
+		Presenter: presenter,
+	}
 	health := &handler.Health{
 		Presenter: presenter,
 	}
+	create := payment.NewCreate()
+	paymentCreate := &payment2.Create{
+		Presenter:     presenter,
+		CreateUseCase: create,
+	}
+	walletCreate := wallet.NewCreate()
+	create2 := &wallet2.Create{
+		Presenter:     presenter,
+		CreateUseCase: walletCreate,
+	}
 	apiApplication := &api.Application{
-		BaseApp:       app,
-		Server:        apiServer,
-		HealthHandler: health,
+		BaseApp:              app,
+		Server:               apiServer,
+		CorsMiddleware:       cors,
+		HealthHandler:        health,
+		PaymentCreateHandler: paymentCreate,
+		WalletCreateHandler:  create2,
 	}
 	testApplication := &test.Application{
 		BaseApp:  app,

@@ -11,6 +11,9 @@ import (
 
 	"github.com/didiegovieira/go-payments-core/apps/payments/internal/application"
 	"github.com/didiegovieira/go-payments-core/apps/payments/internal/infrastructure/api/handler"
+	"github.com/didiegovieira/go-payments-core/apps/payments/internal/infrastructure/api/handler/payment"
+	"github.com/didiegovieira/go-payments-core/apps/payments/internal/infrastructure/api/handler/wallet"
+	"github.com/didiegovieira/go-payments-core/apps/payments/internal/infrastructure/api/middleware"
 	"github.com/didiegovieira/go-payments-core/apps/payments/internal/settings"
 	"github.com/didiegovieira/go-payments-core/pkg/api"
 	"github.com/gin-gonic/gin"
@@ -20,8 +23,17 @@ type Application struct {
 	BaseApp *application.App
 	Server  api.Server[*gin.Engine]
 
+	// Middleware
+	CorsMiddleware *middleware.Cors
+
 	// Health
 	HealthHandler *handler.Health
+
+	// Payment
+	PaymentCreateHandler *payment.Create
+
+	// Wallet
+	WalletCreateHandler *wallet.Create
 }
 
 func (a *Application) Start() {

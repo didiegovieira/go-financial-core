@@ -3,10 +3,12 @@ package api
 import (
 	"fmt"
 
+	"github.com/didiegovieira/go-payments-core/apps/payments/internal/settings"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/swaggo/swag/example/basic/docs"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
 const (
@@ -15,6 +17,7 @@ const (
 
 func (a *Application) SetupRoutes() {
 	router := a.Server.GetRouter()
+	router.Use(otelgin.Middleware(settings.Settings.Metrics.Name))
 
 	// Swagger Docs
 	docs.SwaggerInfo.Title = "Go Payments API"
@@ -29,7 +32,7 @@ func (a *Application) SetupRoutes() {
 	router.GET("/docs/payments/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Base Routes
-	base := router.Group(prefix)
+	base := router.Group(prefix, a.CorsMiddleware.Handle())
 	{
 		// Health Check
 		base.GET("/health", a.HealthHandler.Handle())
