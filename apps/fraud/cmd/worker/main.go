@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/didiegovieira/go-payments-core/apps/fraud/di"
-	"github.com/didiegovieira/go-payments-core/apps/fraud/internal/settings"
+	"github.com/didiegovieira/go-financial-core/apps/fraud/di"
+	"github.com/didiegovieira/go-financial-core/apps/fraud/internal/settings"
 )
 
 func main() {

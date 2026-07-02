@@ -25,11 +25,30 @@ type (
 	}
 
 	DatabaseSpecification struct {
-		Host     string `envconfig:"DB_HOST" default:"localhost"`
-		Port     int    `envconfig:"DB_PORT" default:"5432"`
-		User     string `envconfig:"DB_USER" default:"postgres"`
-		Password string `envconfig:"DB_PASSWORD" default:"postgres"`
-		Name     string `envconfig:"DB_NAME" default:"fraud_db"`
+		Postgres PostgresSpecification
+		MySQL    MySQLSpecification
+		MongoDB  MongoDBSpecification
+	}
+
+	PostgresSpecification struct {
+		Host         string `envconfig:"POSTGRES_HOST" default:"localhost"`
+		Port         int    `envconfig:"POSTGRES_PORT" default:"5432"`
+		User         string `envconfig:"POSTGRES_USER" default:"postgres"`
+		Password     string `envconfig:"POSTGRES_PASSWORD" default:"postgres"`
+		DatabaseName string `envconfig:"POSTGRES_DATABASE" default:"fraud_db"`
+	}
+
+	MySQLSpecification struct {
+		Host         string `envconfig:"MYSQL_HOST" default:"localhost"`
+		Port         int    `envconfig:"MYSQL_PORT" default:"3306"`
+		User         string `envconfig:"MYSQL_USER" default:"root"`
+		Password     string `envconfig:"MYSQL_PASSWORD" default:"root"`
+		DatabaseName string `envconfig:"MYSQL_DATABASE" default:"fraud_db"`
+	}
+
+	MongoDBSpecification struct {
+		URI          string `envconfig:"MONGODB_URI" default:"mongodb://localhost:27017"`
+		DatabaseName string `envconfig:"MONGODB_DATABASE" default:"fraud_db"`
 	}
 
 	KafkaSpecification struct {
@@ -37,12 +56,12 @@ type (
 	}
 
 	MetricsSpecification struct {
-		Name            string `envconfig:"OTEL_SERVICE_NAME" default:"github.com/didiegovieira/go-payments-core"`
-		Url             string `envconfig:"OTEL_EXPORTER_JAEGER_ENDPOINT" default:"http://localhost:4317"`
+		Name            string `envconfig:"OTEL_SERVICE_NAME" default:"github.com/didiegovieira/go-financial-core"`
+		Url             string `envconfig:"OTEL_EXPORTER_OTLP_ENDPOINT" default:"http://localhost:4317"`
 		Token           string `envconfig:"SPLUNK_ACCESS_TOKEN"`
-		Resource        string `envconfig:"OTEL_RESOURCE_ATTRIBUTES" default:"service.name=github.com/didiegovieira/go-payments-core"`
-		TracesExporter  string `envconfig:"OTEL_TRACES_EXPORTER" default:"jaeger"`
-		MetricsExporter string `envconfig:"OTEL_METRICS_EXPORTER" default:""`
+		Resource        string `envconfig:"OTEL_RESOURCE_ATTRIBUTES" default:"service.name=github.com/didiegovieira/go-financial-core"`
+		TracesExporter  string `envconfig:"OTEL_TRACES_EXPORTER" default:"otlp"`
+		MetricsExporter string `envconfig:"OTEL_METRICS_EXPORTER" default:"none"`
 	}
 )
 
@@ -50,8 +69,12 @@ var Settings Specification
 
 func Load() {
 	if os.Getenv("ENVIRONMENT") != "test" {
-		if err := godotenv.Load(); err != nil {
-			log.Printf("Warning loading .env file: %v", err)
+		if _, statErr := os.Stat(".env"); statErr == nil {
+			if err := godotenv.Load(); err != nil {
+				log.Printf("Warning loading .env file: %v", err)
+			}
+		} else if !os.IsNotExist(statErr) {
+			log.Printf("Warning loading .env file: %v", statErr)
 		}
 	}
 

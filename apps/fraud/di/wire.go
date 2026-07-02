@@ -4,16 +4,16 @@
 package di
 
 import (
-	"github.com/didiegovieira/go-payments-core/apps/fraud/internal/infrastructure/messaging"
+	"github.com/didiegovieira/go-financial-core/apps/fraud/internal/service"
 	"github.com/google/wire"
 )
 
 var wireWorkerSet = wire.NewSet(
 	wireCommonSet,
-	wire.Struct(new(messaging.Application), "*"),
+	wire.Struct(new(service.Worker), "*"),
 )
 
-func InitializeWorker() (*messaging.Application, func(), error) {
+func InitializeWorker() (*service.Worker, func(), error) {
 	wire.Build(wireWorkerSet)
-	return &messaging.Application{}, func() {}, nil
+	return &service.Worker{}, func() {}, nil
 }
