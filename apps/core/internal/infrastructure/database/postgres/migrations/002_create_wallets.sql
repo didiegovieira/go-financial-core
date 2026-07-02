@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS wallets (
+	id UUID PRIMARY KEY,
+	account_id UUID NOT NULL REFERENCES accounts(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+	balance DECIMAL(10, 2) NOT NULL,
+	status VARCHAR(50) NOT NULL,
+	created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+	updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_wallets_account_id ON wallets(account_id);
