@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/didiegovieira/go-payments-core/pkg/base"
+	"github.com/didiegovieira/go-financial-core/pkg/base"
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"

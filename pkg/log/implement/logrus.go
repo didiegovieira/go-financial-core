@@ -13,7 +13,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	libruntime "github.com/didiegovieira/go-payments-core/pkg/runtime"
+	libruntime "github.com/didiegovieira/go-financial-core/pkg/runtime"
 )
 
 type loggerConfig struct {

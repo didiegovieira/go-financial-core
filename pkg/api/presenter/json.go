@@ -3,8 +3,8 @@ package presenter
 import (
 	"net/http"
 
-	appErr "github.com/didiegovieira/go-payments-core/pkg/errors"
-	"github.com/didiegovieira/go-payments-core/pkg/metrics"
+	appErr "github.com/didiegovieira/go-financial-core/pkg/errors"
+	"github.com/didiegovieira/go-financial-core/pkg/metrics"
 
 	"github.com/gin-gonic/gin"
 )

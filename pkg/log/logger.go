@@ -1,5 +1,5 @@
 package log
 
-import "github.com/didiegovieira/go-payments-core/pkg/log/implement"
+import "github.com/didiegovieira/go-financial-core/pkg/log/implement"
 
 var Logger implement.Logger
