@@ -6,7 +6,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN go build -o /out/notifications-worker ./apps/notifications/cmd/worker
+RUN go build -o /out/notifications-worker ./apps/notification/cmd/worker
 
 FROM alpine:3.22
 

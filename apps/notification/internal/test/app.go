@@ -3,12 +3,12 @@ package test
 import (
 	"net/http/httptest"
 
-	"github.com/didiegovieira/go-payments-core/apps/notifications/internal/application"
+	"github.com/didiegovieira/go-financial-core/apps/notification/internal/service"
 	"go.uber.org/mock/gomock"
 )
 
 type Application struct {
-	BaseApp *application.App
+	BaseApp *service.App
 
 	MockCtrl *gomock.Controller
 

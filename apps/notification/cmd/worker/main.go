@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/didiegovieira/go-payments-core/apps/notifications/di"
-	"github.com/didiegovieira/go-payments-core/apps/notifications/internal/settings"
+	"github.com/didiegovieira/go-financial-core/apps/notification/di"
+	"github.com/didiegovieira/go-financial-core/apps/notification/internal/settings"
 )
 
 func main() {
