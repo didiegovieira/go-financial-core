@@ -1,10 +1,10 @@
-package application
+package service
 
 import (
-	"github.com/didiegovieira/go-payments-core/apps/audit/internal/settings"
-	"github.com/didiegovieira/go-payments-core/pkg/log"
-	"github.com/didiegovieira/go-payments-core/pkg/log/implement"
-	"github.com/didiegovieira/go-payments-core/pkg/metrics"
+	"github.com/didiegovieira/go-financial-core/apps/audit/internal/settings"
+	"github.com/didiegovieira/go-financial-core/pkg/log"
+	"github.com/didiegovieira/go-financial-core/pkg/log/implement"
+	"github.com/didiegovieira/go-financial-core/pkg/metrics"
 	"go.opentelemetry.io/otel/trace"
 )
 

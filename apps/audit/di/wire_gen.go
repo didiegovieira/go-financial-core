@@ -7,29 +7,28 @@
 package di
 
 import (
-	"github.com/didiegovieira/go-payments-core/apps/audit/internal/application"
-	"github.com/didiegovieira/go-payments-core/apps/audit/internal/infrastructure/messaging"
+	"github.com/didiegovieira/go-financial-core/apps/audit/internal/service"
 	"github.com/google/wire"
 )
 
 // Injectors from wire.go:
 
-func InitializeWorker() (*messaging.Application, func(), error) {
+func InitializeWorker() (*service.Worker, func(), error) {
 	logger := provideLogger()
 	tracer := provideTracer()
-	app := &application.App{
+	app := &service.App{
 		Logger: logger,
 		Tracer: tracer,
 	}
-	messagingApplication := &messaging.Application{
-		BaseApp: app,
+	worker := &service.Worker{
+		App: app,
 	}
-	return messagingApplication, func() {
+	return worker, func() {
 	}, nil
 }
 
 // wire.go:
 
 var wireWorkerSet = wire.NewSet(
-	wireCommonSet, wire.Struct(new(messaging.Application), "*"),
+	wireCommonSet, wire.Struct(new(service.Worker), "*"),
 )
