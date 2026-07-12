@@ -6,6 +6,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      kafka:
+        condition: service_started
       jaeger:
         condition: service_started
     ports:
@@ -14,6 +16,9 @@ services:
     environment:
       - HTTP_SERVER_PORT=:8080
       - POSTGRES_DATABASE=financial_core_db
+      - OTEL_SERVICE_NAME=financial-core-api
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=financial-core-api
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
     networks:
       - financial-core-network
 
@@ -21,25 +26,18 @@ services:
     build:
       context: .
       dockerfile: ./apps/audit/Dockerfile
-    ports:
-      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
     env_file: .env.example
     environment:
       - HTTP_SERVER_PORT=:8081
       - POSTGRES_DATABASE=audit_db
-    networks:
-      - financial-core-network
-
-  fraud:
-    build:
-      context: .
-      dockerfile: ./apps/fraud/Dockerfile
-    ports:
-      - "8082:8082"
-    env_file: .env.example
-    environment:
-      - HTTP_SERVER_PORT=:8082
-      - POSTGRES_DATABASE=fraud_db
+      - OTEL_SERVICE_NAME=audit-worker
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=audit-worker
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
     networks:
       - financial-core-network
 
@@ -47,12 +45,16 @@ services:
     build:
       context: .
       dockerfile: ./apps/notification/Dockerfile
-    ports:
-      - "8083:8083"
+    depends_on:
+      kafka:
+        condition: service_started
     env_file: .env.example
     environment:
       - HTTP_SERVER_PORT=:8083
       - POSTGRES_DATABASE=notification_db
+      - OTEL_SERVICE_NAME=notification-worker
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=notification-worker
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
     networks:
       - financial-core-network
 
