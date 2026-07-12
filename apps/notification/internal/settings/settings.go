@@ -52,7 +52,8 @@ type (
 	}
 
 	KafkaSpecification struct {
-		Brokers []string `envconfig:"KAFKA_BROKERS" default:"kafka:9092"`
+		Brokers         []string `envconfig:"KAFKA_BROKERS" default:"kafka:9092"`
+		ConsumerGroupID string   `envconfig:"KAFKA_CONSUMER_GROUP_ID" default:"notification-service"`
 	}
 
 	MetricsSpecification struct {

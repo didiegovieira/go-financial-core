@@ -1,7 +1,6 @@
-package service
+package runtime
 
 import (
-	"github.com/didiegovieira/go-financial-core/apps/notification/internal/settings"
 	"github.com/didiegovieira/go-financial-core/pkg/log"
 	"github.com/didiegovieira/go-financial-core/pkg/log/implement"
 	"github.com/didiegovieira/go-financial-core/pkg/metrics"
@@ -15,12 +14,7 @@ type App struct {
 
 func (a *App) Start(serviceName string) {
 	log.Logger = a.Logger
-
-	if settings.Settings.IsLocal() {
-		metrics.Tracer = trace.NewNoopTracerProvider().Tracer("local")
-	} else {
-		metrics.Tracer = a.Tracer
-	}
+	metrics.Tracer = a.Tracer
 
 	a.Logger.Tag("service", serviceName)
 }
