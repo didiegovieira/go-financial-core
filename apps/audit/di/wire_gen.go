@@ -7,21 +7,34 @@
 package di
 
 import (
-	"github.com/didiegovieira/go-financial-core/apps/audit/internal/service"
+	"github.com/didiegovieira/go-financial-core/apps/audit/internal/application/usecase"
+	"github.com/didiegovieira/go-financial-core/apps/audit/internal/infrastructure/database/postgres/repository"
+	"github.com/didiegovieira/go-financial-core/apps/audit/internal/infrastructure/messaging/kafka"
+	"github.com/didiegovieira/go-financial-core/apps/audit/internal/runtime"
 	"github.com/google/wire"
 )
 
 // Injectors from wire.go:
 
-func InitializeWorker() (*service.Worker, func(), error) {
+func InitializeWorker() (*runtime.Worker, func(), error) {
 	logger := provideLogger()
 	tracer := provideTracer()
-	app := &service.App{
+	app := &runtime.App{
 		Logger: logger,
 		Tracer: tracer,
 	}
-	worker := &service.Worker{
-		App: app,
+	config := kafka.NewConfigFromCurrentSettings()
+	db := provideDatabase()
+	auditLogRepository := postgres.NewAuditLogRepository(db)
+	recordAudit := usecase.NewRecordAudit(auditLogRepository)
+	handler := kafka.NewHandler(recordAudit)
+	consumer, err := kafka.NewConsumer(config, handler)
+	if err != nil {
+		return nil, nil, err
+	}
+	worker := &runtime.Worker{
+		App:      app,
+		Consumer: consumer,
 	}
 	return worker, func() {
 	}, nil
@@ -30,5 +43,8 @@ func InitializeWorker() (*service.Worker, func(), error) {
 // wire.go:
 
 var wireWorkerSet = wire.NewSet(
-	wireCommonSet, wire.Struct(new(service.Worker), "*"),
+	wireCommonSet,
+	wireRepositorySet,
+	wireUsecaseSet,
+	wireMessagingSet, wire.Struct(new(runtime.Worker), "*"),
 )

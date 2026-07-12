@@ -4,16 +4,19 @@
 package di
 
 import (
-	"github.com/didiegovieira/go-financial-core/apps/audit/internal/service"
+	"github.com/didiegovieira/go-financial-core/apps/audit/internal/runtime"
 	"github.com/google/wire"
 )
 
 var wireWorkerSet = wire.NewSet(
 	wireCommonSet,
-	wire.Struct(new(service.Worker), "*"),
+	wireRepositorySet,
+	wireUsecaseSet,
+	wireMessagingSet,
+	wire.Struct(new(runtime.Worker), "*"),
 )
 
-func InitializeWorker() (*service.Worker, func(), error) {
+func InitializeWorker() (*runtime.Worker, func(), error) {
 	wire.Build(wireWorkerSet)
-	return &service.Worker{}, func() {}, nil
+	return &runtime.Worker{}, func() {}, nil
 }
