@@ -9,8 +9,15 @@ wire-core:
 wire-notifications:
 	wire gen ./apps/notification/di
 
-wire-fraud:
-	wire gen ./apps/fraud/di
-
 wire-audit:
 	wire gen ./apps/audit/di
+
+docs-core:
+	go run github.com/swaggo/swag/cmd/swag@v1.16.6 init \
+		-g main.go \
+		-d apps/core/cmd/api \
+		-o apps/core/docs \
+		--parseInternal
+
+run-core:
+	go run ./apps/core/cmd/api
