@@ -9,7 +9,7 @@ import (
 type WalletModel struct {
 	ID        uuid.UUID
 	AccountID uuid.UUID
-	Balance   float64
+	Balance   int64
 	Status    string
 	CreatedAt time.Time
 	UpdatedAt time.Time

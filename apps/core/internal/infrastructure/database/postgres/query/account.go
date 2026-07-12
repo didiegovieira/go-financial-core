@@ -31,3 +31,25 @@ WHERE document_number = $1
 	AND document_country = $3
 LIMIT 1;
 `
+
+const AccountFindByPhone = `
+SELECT
+	id,
+	name,
+	email,
+	password,
+	phone,
+	document_type,
+	document_number,
+	document_country,
+	created_at,
+	updated_at
+FROM accounts
+WHERE phone = $1
+LIMIT 1;
+`
+
+const AccountDeleteByPhone = `
+DELETE FROM accounts
+WHERE phone = $1;
+`

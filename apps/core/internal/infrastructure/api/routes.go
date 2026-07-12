@@ -40,11 +40,14 @@ func (a *Application) SetupRoutes() {
 		accounts := base.Group("/accounts")
 		{
 			accounts.POST("", a.AccountCreateHandler.Handle())
+			accounts.GET("", a.FindByPhoneHandler.Handle())
+			accounts.DELETE("", a.DeleteByPhoneHandler.Handle())
 		}
 
-		payments := base.Group("/payments")
+		wallets := base.Group("/wallets")
 		{
-			payments.POST("", a.PaymentCreateHandler.Handle())
+			wallets.POST("/credits", a.WalletCreditHandler.Handle())
+			wallets.POST("/debits", a.WalletDebitHandler.Handle())
 		}
 	}
 

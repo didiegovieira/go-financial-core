@@ -9,11 +9,11 @@ package di
 import (
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/application"
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/application/usecase/account"
-	"github.com/didiegovieira/go-financial-core/apps/core/internal/application/usecase/payment"
+	"github.com/didiegovieira/go-financial-core/apps/core/internal/application/usecase/wallet"
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/infrastructure/api"
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/infrastructure/api/handler"
 	account2 "github.com/didiegovieira/go-financial-core/apps/core/internal/infrastructure/api/handler/account"
-	payment2 "github.com/didiegovieira/go-financial-core/apps/core/internal/infrastructure/api/handler/payment"
+	wallet2 "github.com/didiegovieira/go-financial-core/apps/core/internal/infrastructure/api/handler/wallet"
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/infrastructure/api/middleware"
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/infrastructure/database/postgres/repository"
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/test"
@@ -39,28 +39,51 @@ func InitializeApi() (*api.Application, func(), error) {
 	health := &handler.Health{
 		Presenter: presenter,
 	}
-	create := payment.NewCreate()
-	paymentCreate := &payment2.Create{
-		Presenter:     presenter,
-		CreateUseCase: create,
-	}
 	db := provideDatabase()
 	accountRepository := postgres.NewAccountRepository(db)
 	walletRepository := postgres.NewWalletRepository(db)
-	accountCreate := account.NewCreate(accountRepository, walletRepository)
-	create2 := &account2.Create{
+	producer, cleanup, err := provideKafkaProducer()
+	if err != nil {
+		return nil, nil, err
+	}
+	create := account.NewCreate(accountRepository, walletRepository, producer)
+	accountCreate := &account2.Create{
 		Presenter:     presenter,
-		CreateUseCase: accountCreate,
+		CreateUseCase: create,
+	}
+	findByPhone := account.NewFindByPhone(accountRepository)
+	accountFindByPhone := &account2.FindByPhone{
+		Presenter:          presenter,
+		FindByPhoneUseCase: findByPhone,
+	}
+	deleteByPhone := account.NewDeleteByPhone(accountRepository, walletRepository, producer)
+	accountDeleteByPhone := &account2.DeleteByPhone{
+		Presenter:            presenter,
+		DeleteByPhoneUseCase: deleteByPhone,
+	}
+	credit := wallet.NewCredit(accountRepository, walletRepository, producer)
+	walletCredit := &wallet2.Credit{
+		Presenter:     presenter,
+		CreditUseCase: credit,
+	}
+	debit := wallet.NewDebit(accountRepository, walletRepository, producer)
+	walletDebit := &wallet2.Debit{
+		Presenter:    presenter,
+		DebitUseCase: debit,
 	}
 	apiApplication := &api.Application{
 		BaseApp:              app,
 		Server:               apiServer,
 		CorsMiddleware:       cors,
 		HealthHandler:        health,
-		PaymentCreateHandler: paymentCreate,
-		AccountCreateHandler: create2,
+		AccountCreateHandler: accountCreate,
+		FindByPhoneHandler:   accountFindByPhone,
+		DeleteByPhoneHandler: accountDeleteByPhone,
+		WalletCreditHandler:  walletCredit,
+		WalletDebitHandler:   walletDebit,
 	}
 	return apiApplication, func() {
+		cleanup()
 	}, nil
 }
 
@@ -80,26 +103,48 @@ func InitializeTests(mockCtrl *gomock.Controller) (*test.Application, func(), er
 	health := &handler.Health{
 		Presenter: presenter,
 	}
-	create := payment.NewCreate()
-	paymentCreate := &payment2.Create{
-		Presenter:     presenter,
-		CreateUseCase: create,
-	}
 	db := provideDatabase()
 	accountRepository := postgres.NewAccountRepository(db)
 	walletRepository := postgres.NewWalletRepository(db)
-	accountCreate := account.NewCreate(accountRepository, walletRepository)
-	create2 := &account2.Create{
+	producer, cleanup, err := provideKafkaProducer()
+	if err != nil {
+		return nil, nil, err
+	}
+	create := account.NewCreate(accountRepository, walletRepository, producer)
+	accountCreate := &account2.Create{
 		Presenter:     presenter,
-		CreateUseCase: accountCreate,
+		CreateUseCase: create,
+	}
+	findByPhone := account.NewFindByPhone(accountRepository)
+	accountFindByPhone := &account2.FindByPhone{
+		Presenter:          presenter,
+		FindByPhoneUseCase: findByPhone,
+	}
+	deleteByPhone := account.NewDeleteByPhone(accountRepository, walletRepository, producer)
+	accountDeleteByPhone := &account2.DeleteByPhone{
+		Presenter:            presenter,
+		DeleteByPhoneUseCase: deleteByPhone,
+	}
+	credit := wallet.NewCredit(accountRepository, walletRepository, producer)
+	walletCredit := &wallet2.Credit{
+		Presenter:     presenter,
+		CreditUseCase: credit,
+	}
+	debit := wallet.NewDebit(accountRepository, walletRepository, producer)
+	walletDebit := &wallet2.Debit{
+		Presenter:    presenter,
+		DebitUseCase: debit,
 	}
 	apiApplication := &api.Application{
 		BaseApp:              app,
 		Server:               apiServer,
 		CorsMiddleware:       cors,
 		HealthHandler:        health,
-		PaymentCreateHandler: paymentCreate,
-		AccountCreateHandler: create2,
+		AccountCreateHandler: accountCreate,
+		FindByPhoneHandler:   accountFindByPhone,
+		DeleteByPhoneHandler: accountDeleteByPhone,
+		WalletCreditHandler:  walletCredit,
+		WalletDebitHandler:   walletDebit,
 	}
 	testApplication := &test.Application{
 		BaseApp:  app,
@@ -107,6 +152,7 @@ func InitializeTests(mockCtrl *gomock.Controller) (*test.Application, func(), er
 		MockCtrl: mockCtrl,
 	}
 	return testApplication, func() {
+		cleanup()
 	}, nil
 }
 
@@ -115,6 +161,7 @@ func InitializeTests(mockCtrl *gomock.Controller) (*test.Application, func(), er
 var wireApiSet = wire.NewSet(
 	wireCommonSet,
 	wireRepositorySet,
+	wireMessagingSet,
 	wireUsecaseSet,
 	wireMiddlewareSet,
 	wireHandlerSet,
@@ -124,6 +171,7 @@ var wireApiSet = wire.NewSet(
 var wireTestSet = wire.NewSet(
 	wireCommonSet,
 	wireRepositorySet,
+	wireMessagingSet,
 	wireUsecaseSet,
 	wireMiddlewareSet,
 	wireHandlerSet,

@@ -12,7 +12,7 @@ import (
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/application"
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/infrastructure/api/handler"
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/infrastructure/api/handler/account"
-	"github.com/didiegovieira/go-financial-core/apps/core/internal/infrastructure/api/handler/payment"
+	"github.com/didiegovieira/go-financial-core/apps/core/internal/infrastructure/api/handler/wallet"
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/infrastructure/api/middleware"
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/settings"
 	"github.com/didiegovieira/go-financial-core/pkg/api"
@@ -29,11 +29,14 @@ type Application struct {
 	// Health
 	HealthHandler *handler.Health
 
-	// Payment
-	PaymentCreateHandler *payment.Create
-
 	// Account
 	AccountCreateHandler *account.Create
+	FindByPhoneHandler   *account.FindByPhone
+	DeleteByPhoneHandler *account.DeleteByPhone
+
+	// Wallet
+	WalletCreditHandler *wallet.Credit
+	WalletDebitHandler  *wallet.Debit
 }
 
 func (a *Application) Start() {

@@ -21,3 +21,7 @@ func (e Http) Error() string {
 func HttpBadRequest(message string) error {
 	return NewHttp(http.StatusBadRequest, message)
 }
+
+func HttpForbidden(message string) error {
+	return NewHttp(http.StatusForbidden, message)
+}

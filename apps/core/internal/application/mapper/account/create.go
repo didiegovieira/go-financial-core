@@ -2,6 +2,7 @@ package account
 
 import (
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/application/dto/account"
+	"github.com/didiegovieira/go-financial-core/apps/core/internal/application/normalizer"
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/domain/entity"
 )
 
@@ -10,7 +11,7 @@ func MapCreateInputToAccount(dto account.CreateInput) *entity.Account {
 		Name:            dto.Name,
 		Email:           dto.Email,
 		Password:        dto.Password,
-		Phone:           dto.Phone,
+		Phone:           normalizer.Phone(dto.Phone),
 		DocumentType:    dto.DocumentType,
 		DocumentNumber:  dto.DocumentNumber,
 		DocumentCountry: dto.DocumentCountry,

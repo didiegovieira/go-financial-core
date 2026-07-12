@@ -1,12 +1,15 @@
 package presenter
 
 import (
+	"encoding/json"
+	"errors"
 	"net/http"
 
 	appErr "github.com/didiegovieira/go-financial-core/pkg/errors"
 	"github.com/didiegovieira/go-financial-core/pkg/metrics"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 type JsonConfig struct {
@@ -52,6 +55,10 @@ func (j Json) Error(c *gin.Context, err error) {
 	code := http.StatusInternalServerError
 	response := gin.H{"error": err.Error()}
 
+	var validationErrors validator.ValidationErrors
+	var syntaxError *json.SyntaxError
+	var unmarshalTypeError *json.UnmarshalTypeError
+
 	switch e := err.(type) {
 	case *appErr.Validation:
 		code = http.StatusBadRequest
@@ -59,6 +66,14 @@ func (j Json) Error(c *gin.Context, err error) {
 
 	case *appErr.Http:
 		code = e.Code
+	case appErr.BadFormat:
+		code = http.StatusBadRequest
+	}
+
+	if errors.As(err, &validationErrors) ||
+		errors.As(err, &syntaxError) ||
+		errors.As(err, &unmarshalTypeError) {
+		code = http.StatusBadRequest
 	}
 
 	j.setTraceID(c, response)

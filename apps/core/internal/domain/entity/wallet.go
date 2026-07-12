@@ -7,7 +7,7 @@ import (
 type Wallet struct {
 	ID        uuid.UUID
 	AccountID uuid.UUID
-	Balance   float64
+	Balance   int64
 	Status    string
 }
 
@@ -15,7 +15,7 @@ func NewWallet(accountID uuid.UUID) *Wallet {
 	return &Wallet{
 		ID:        uuid.New(),
 		AccountID: accountID,
-		Balance:   0.0,
+		Balance:   0,
 		Status:    "active",
 	}
 }

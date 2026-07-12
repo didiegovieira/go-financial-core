@@ -22,7 +22,7 @@ type Create struct {
 // @Tags         Accounts
 // @Accept       json
 // @Produce      json
-// @Success      201  {object}  api.Response "Account created successfully"
+// @Success      201  {object}  dto.CreateOutput "Account created successfully"
 // @Router       /v1/financial/accounts [post]
 func (c *Create) Handle() func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
