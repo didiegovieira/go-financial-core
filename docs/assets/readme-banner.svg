@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" fill="none" role="img" aria-labelledby="title description">
+  <title id="title">Go Financial Core</title>
+  <desc id="description">An event-driven financial backend. Core API publishes events to Kafka, consumed by audit and notification workers.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1200" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#081424"/>
+      <stop offset="1" stop-color="#11283B"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="52" y1="0" x2="1120" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#31C5F0"/>
+      <stop offset="1" stop-color="#5DE4B8"/>
+    </linearGradient>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="1" fill="#7693AA" opacity=".15"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="360" rx="18" fill="url(#background)"/>
+  <rect width="1200" height="360" rx="18" fill="url(#grid)"/>
+  <path d="M570 360 930 0M680 360 1040 0M790 360 1150 0" stroke="#31C5F0" stroke-opacity=".06" stroke-width="64"/>
+  <rect x=".5" y=".5" width="1199" height="359" rx="17.5" stroke="#7794AF" stroke-opacity=".25"/>
+  <rect x="52" y="52" width="32" height="3" rx="1.5" fill="url(#accent)"/>
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif">
+    <text x="97" y="59" fill="#9AB1C8" font-size="12" font-weight="600" letter-spacing="2.5">BACKEND ENGINEERING / LOCAL MVP</text>
+    <text x="50" y="143" fill="#F2F7FC" font-size="58" font-weight="750" letter-spacing="-2">Go Financial Core</text>
+    <text x="53" y="188" fill="#B6CBDD" font-size="20">Accounts. Wallets. Events. Visibility.</text>
+    <text x="53" y="221" fill="#819EB5" font-size="15">A practical study of financial systems with Go.</text>
+    <rect x="53" y="266" width="53" height="30" rx="7" fill="#31C5F0" fill-opacity=".12" stroke="#31C5F0" stroke-opacity=".3"/>
+    <text x="68" y="286" fill="#77DDF9" font-size="12" font-weight="600">GO</text>
+    <rect x="118" y="266" width="125" height="30" rx="7" fill="#31C5F0" fill-opacity=".07" stroke="#607E96" stroke-opacity=".3"/>
+    <text x="133" y="286" fill="#B6CBDD" font-size="12" font-weight="600">EVENT DRIVEN</text>
+    <rect x="255" y="266" width="131" height="30" rx="7" fill="#5DE4B8" fill-opacity=".07" stroke="#5DE4B8" stroke-opacity=".25"/>
+    <text x="270" y="286" fill="#93E8CC" font-size="12" font-weight="600">OBSERVABILITY</text>
+    <path d="M793 127H855V96H906M855 127V209H906" stroke="url(#accent)" stroke-width="2"/>
+    <circle cx="855" cy="127" r="4" fill="#5DE4B8"/>
+    <rect x="676" y="102" width="117" height="50" rx="10" fill="#10283B" stroke="#31C5F0" stroke-opacity=".6"/>
+    <text x="698" y="133" fill="#DCECF5" font-size="13" font-weight="600">CORE API</text>
+    <rect x="906" y="71" width="218" height="50" rx="10" fill="#10283B" stroke="#5DE4B8" stroke-opacity=".45"/>
+    <text x="927" y="102" fill="#DCECF5" font-size="13" font-weight="600">AUDIT WORKER</text>
+    <rect x="906" y="184" width="218" height="50" rx="10" fill="#10283B" stroke="#5DE4B8" stroke-opacity=".45"/>
+    <text x="927" y="215" fill="#DCECF5" font-size="13" font-weight="600">NOTIFICATION WORKER</text>
+    <rect x="816" y="142" width="78" height="26" rx="6" fill="#163448"/>
+    <text x="833" y="160" fill="#76DECC" font-size="10" font-weight="600" letter-spacing="1">KAFKA</text>
+    <path d="M734 165V277H1015V247" stroke="#607E96" stroke-opacity=".6" stroke-dasharray="4 5"/>
+    <path d="M1015 134V168" stroke="#607E96" stroke-opacity=".6" stroke-dasharray="4 5"/>
+    <rect x="785" y="261" width="177" height="32" rx="8" fill="#112A3C" stroke="#607E96" stroke-opacity=".35"/>
+    <text x="802" y="282" fill="#9AB1C8" font-size="11">LOGS / METRICS / TRACES</text>
+  </g>
+</svg>

@@ -9,7 +9,7 @@ This is a Go financial backend with three applications in one module:
 - `apps/notification`: Kafka notification worker; entrypoint `cmd/worker`.
 - `pkg`: shared infrastructure and utilities.
 - `docker/postgres/init.sql`: local database bootstrap.
-- `RUNBOOK.md`: local operation and troubleshooting procedures.
+- `docs/RUNBOOK.md`: local operation and troubleshooting procedures.
 
 Read the relevant application and its existing tests before changing behavior.
 Use `go.mod`, `Makefile`, and `docker-compose.yml` as the source of truth for

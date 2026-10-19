@@ -1,245 +1,270 @@
-# Go Financial Core
+<div align="center">
 
-[![CI](https://github.com/didiegovieira/go-financial-core/actions/workflows/ci.yml/badge.svg)](https://github.com/didiegovieira/go-financial-core/actions/workflows/ci.yml)
+<img src="docs/assets/readme-banner.svg" alt="Go Financial Core - event-driven financial backend" width="100%" />
 
-Go Financial Core is a financial backend MVP built with Go, PostgreSQL, and Kafka. It provides account and wallet operations, asynchronous audit and notification workflows, and integrated logs, metrics, and distributed tracing.
+<p><strong>A financial backend MVP for studying Go, distributed systems, and observability.</strong></p>
 
-The MVP runs locally with Docker Compose and serves as a practical backend engineering project. Notification delivery is simulated. Production reliability and security features remain planned work; see the current limits below.
+<a href="https://github.com/didiegovieira/go-financial-core/actions/workflows/ci.yml"><img src="https://github.com/didiegovieira/go-financial-core/actions/workflows/ci.yml/badge.svg" alt="CI workflow status" /></a>
+<img src="https://img.shields.io/badge/Go-1.25.6-00ADD8?logo=go&amp;logoColor=white" alt="Go 1.25.6" />
+<img src="https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&amp;logoColor=white" alt="PostgreSQL 17" />
+<img src="https://img.shields.io/badge/Apache_Kafka-events-231F20?logo=apachekafka&amp;logoColor=white" alt="Apache Kafka events" />
+<img src="https://img.shields.io/badge/Grafana-observability-F46800?logo=grafana&amp;logoColor=white" alt="Grafana observability" />
+<img src="https://img.shields.io/badge/status-local_MVP-5DE4B8" alt="Local MVP" />
 
-## Purpose
+<p>
+<a href="#overview">Overview</a> &nbsp;&middot;&nbsp;
+<a href="#architecture">Architecture</a> &nbsp;&middot;&nbsp;
+<a href="#quick-start">Quick start</a> &nbsp;&middot;&nbsp;
+<a href="#observability">Observability</a> &nbsp;&middot;&nbsp;
+<a href="#api">API</a> &nbsp;&middot;&nbsp;
+<a href="docs/RUNBOOK.md">Runbook</a>
+</p>
 
-This repository exists to practice and demonstrate the engineering skills required to build reliable backend systems:
+</div>
 
-- Idiomatic Go beyond syntax: package design, interfaces, dependency injection, tests, error handling, and simple composition.
-- Event-driven architecture with Kafka for decoupled workflows between services.
-- Transactional consistency and relational modeling with PostgreSQL.
-- Distributed systems fundamentals such as service boundaries, eventual consistency, async processing, retries, and operational visibility.
-- Observability through structured logs, metrics, and distributed tracing.
-- Clean Architecture with lightweight DDD: domain entities and policies at the center, use cases around them, and infrastructure kept behind ports.
+---
 
-## Domain
+## Overview
 
-The system models a financial core around accounts and wallets.
+Go Financial Core models accounts and wallets with a synchronous HTTP API and
+asynchronous Kafka workers. It is a hands-on study of business rules, persistence,
+service boundaries, and the operational visibility needed to understand a request
+across applications.
 
-Current capabilities include:
+| Capability | What is implemented |
+| --- | --- |
+| Accounts | Create, find, and delete accounts by phone |
+| Wallets | Credit and debit operations, balance validation, and debit risk policy |
+| Events | Kafka publication for account and wallet activity |
+| Audit | Worker persists audit records in PostgreSQL |
+| Notifications | Worker processes events through a simulated delivery client |
+| Observability | Correlated logs, metrics, traces, and filtered Grafana dashboards |
 
-- Account creation, lookup, and deletion by phone.
-- Wallet credit and debit operations.
-- Domain events for core financial activity.
-- Audit log recording through an asynchronous worker.
-- Notification processing through an asynchronous worker.
-
-The domain is intentionally narrow so the architecture can be deep: the focus is on correctness, boundaries, observability, and production-style design rather than on adding many unrelated features.
+> **Project note**
+>
+> This is a **local MVP and study project**. Notification delivery is simulated.
+> Production security and event-delivery guarantees remain future work.
 
 ## Architecture
 
-The repository is organized as a small distributed system:
+Three applications, one Go module, explicit domain boundaries.
 
-- `apps/core`: HTTP API for account and wallet operations.
-- `apps/audit`: Kafka worker responsible for recording audit events.
-- `apps/notification`: Kafka worker responsible for notification workflows.
-- `pkg`: shared infrastructure primitives such as API server helpers, logging, errors, telemetry, validation, Kafka utilities, and base use case contracts.
-- `docker`: database bootstrap/seeds and observability configuration, data sources, and dashboards.
+```mermaid
+flowchart LR
+    Client[HTTP client] --> Core[Core API]
+    Core --> CoreDB[(Core database)]
+    Core --> Kafka[Kafka events]
+    Kafka --> Audit[Audit worker]
+    Kafka --> Notification[Notification worker]
+    Audit --> AuditDB[(Audit database)]
+    Notification --> Noop[Simulated delivery]
 
-Each application follows the same general layering:
-
-- `domain`: entities, domain errors, events, and business policies.
-- `application`: use cases, DTOs, mappers, and ports.
-- `infrastructure`: HTTP handlers, database repositories, Kafka producers/consumers, migrations, and external clients.
-- `di`: Wire-based dependency injection.
-- `cmd`: executable entrypoints.
-
-This keeps business rules independent from frameworks and external systems while still allowing the project to use real infrastructure locally.
-
-## Tech Stack
-
-- Go
-- Gin for HTTP APIs
-- PostgreSQL for transactional persistence
-- Kafka for event-driven messaging
-- OpenTelemetry and Alloy for collection; Grafana, Tempo, Loki, and Prometheus for traces, logs, and metrics
-- Logrus for structured logging
-- Swagger for API documentation
-- Google Wire for dependency injection
-- GoMock and Testify for tests
-- Docker Compose for local infrastructure
-
-## Local Development
-
-See [RUNBOOK.md](RUNBOOK.md) for startup, diagnostics, configuration, and data
-handling. Repository guidance for coding agents lives in [AGENTS.md](AGENTS.md).
-
-### Requirements
-
-- Go 1.25.6 (matching `go.mod`)
-- Docker and Docker Compose
-- Make
-- Wire, when regenerating dependency injection code
-
-### Run the full stack
-
-```bash
-make up
+    Core -.-> Alloy[Grafana Alloy]
+    Audit -.-> Alloy
+    Notification -.-> Alloy
+    Alloy --> Tempo[Tempo / traces]
+    Alloy --> Loki[Loki / logs]
+    Alloy --> Prometheus[Prometheus / metrics]
+    Tempo --> Grafana[Grafana]
+    Loki --> Grafana
+    Prometheus --> Grafana
 ```
 
-`make up` starts the containers without waiting for app initialization or migrations.
-Check app logs before loading optional demo accounts, wallets, and an audit record:
+Core and audit use separate databases in the same local PostgreSQL instance.
+Alloy receives OTLP traces and metrics and collects container logs through Docker.
+
+| Layer | Responsibility |
+| --- | --- |
+| Domain | Entities, errors, events, and business policies |
+| Application | Use cases, DTOs, orchestration, and dependency ports |
+| Infrastructure | HTTP, PostgreSQL, Kafka, migrations, and external clients |
+| Composition | Wire providers and application entrypoints |
+
+<details>
+<summary><strong>Explore the repository</strong></summary>
+
+```text
+apps/
+  core/             HTTP API for accounts and wallets
+  audit/            Kafka audit worker
+  notification/     Kafka notification worker
+pkg/
+  telemetry/        SDK setup, tracing, metrics, logs, and propagation
+  messaging/kafka/  Shared Kafka transport
+  ...               API, logging, validation, and shared utilities
+docker/
+  postgres/         Database bootstrap and optional demo seeds
+  observability/    Alloy, Tempo, Loki, Prometheus, and Grafana
+docs/               Local runbook and README assets
+.github/workflows/  CI and manual vulnerability scanning
+```
+
+Repository conventions: [AGENTS.md](AGENTS.md).
+Operational procedures: [docs/RUNBOOK.md](docs/RUNBOOK.md).
+
+</details>
+
+## Quick start
+
+**Requirements:** Docker with Compose v2, Make, and Go **1.25.6** for host execution
+and development. Dependency generation also requires Wire.
 
 ```sh
+# Build and start the local stack
+make up
+
+# Check initialization and migrations before using the API
+docker compose logs --tail=100 financial-core audit notifications
+
+# Optional: load synthetic demo accounts and balances
 make seed
 ```
 
-See [local seed procedures](RUNBOOK.md#local-demo-seeds). SQL seeds do not
-publish Kafka events.
+| Open locally | Address |
+| --- | --- |
+| API health | [localhost:8080/v1/financial/health](http://localhost:8080/v1/financial/health) |
+| Swagger | [localhost:8080/docs/financial/index.html](http://localhost:8080/docs/financial/index.html) |
+| Grafana | [localhost:3000](http://localhost:3000) |
 
-The local workflow is `make up`, check initialization/migrations, `make seed`,
-then use the application. When finished, shut down with:
+> **Before you start**
+>
+> Container startup does not guarantee completed migrations or Kafka readiness.
+> Check application logs first. SQL seeds write directly to PostgreSQL and do not
+> publish events; use the API to exercise the workers.
+
+When finished:
 
 ```sh
 make down
 ```
 
-`make down` only stops services, preserving containers and data. PostgreSQL and
-Kafka use named volumes, so subsequent `make up` runs retain their data.
+This stops services while preserving containers and named-volume data.
 
-For a complete local reset, `make drop` removes containers, networks, and volumes,
-deleting database, Kafka, and observability data. The next `make up` initializes a fresh environment;
-run `make seed` after initialization if you want demo data again.
+<details>
+<summary><strong>Need a fresh local environment?</strong></summary>
 
-The main API is exposed on:
+> **Destructive reset**
+>
+> `make drop` deletes containers, networks, and volumes, including database,
+> Kafka, and observability data. Use it only for an intentional reset.
 
-```text
-http://localhost:8080
-```
+After a reset, run `make up`, check initialization, then optionally `make seed`.
+See [data handling and recovery](docs/RUNBOOK.md) before changing existing data.
 
-Swagger documentation is available at:
+</details>
 
-```text
-http://localhost:8080/docs/financial
-```
+## Observability
 
-### Observability MVP
+Follow a request from the API through Kafka into audit and notification processing.
+All three apps use the **official OpenTelemetry Go SDK**, centralized in
+[`pkg/telemetry`](pkg/telemetry).
 
-The three apps use the official OpenTelemetry Go SDK through `pkg/telemetry`.
-Traces and metrics go through Alloy to Tempo and Prometheus. Alloy collects
-container stdout/stderr into Loki. Grafana correlates JSON operational logs with
-traces, including context propagated through Kafka headers.
-
-Grafana is available at `http://localhost:3000` with anonymous Editor access for
-local investigation. Provisioned dashboards include:
-
-| Dashboard | Local URL | Purpose |
+| Signal | Collection and storage | What to investigate |
 | --- | --- | --- |
-| Overview | [Open overview](http://localhost:3000/d/financial-overview) | HTTP/Kafka volume, outcomes, latency, and app logs |
-| Failures | [Open failures](http://localhost:3000/d/financial-failures) | HTTP failures, worker handler errors, and warning/error logs |
-| Investigation | [Open investigation](http://localhost:3000/d/financial-investigation) | Filter logs and search traces by service, span, and duration |
+| Logs | Docker stdout/stderr &rarr; Alloy &rarr; Loki | HTTP outcomes and worker processing, correlated by `trace_id` |
+| Metrics | OpenTelemetry &rarr; Alloy &rarr; Prometheus | Request volume, status codes, handler outcomes, and latency |
+| Traces | OpenTelemetry &rarr; Alloy &rarr; Tempo | Spans across HTTP, use cases, repositories, and workers |
 
-Use the filters at the top and the time picker to narrow results. Expand a JSON
-log record and click **View trace**, or copy the API response's `X-Trace-ID` into
-[Grafana Explore](http://localhost:3000/explore) with the Tempo source selected.
-SQL seeds do not generate events or worker traces; use the API to exercise them.
+### Your investigation workspace
 
-See [observability operations](RUNBOOK.md#grafana-observability-mvp) and
-[dashboard filters](RUNBOOK.md#dashboard-filters) for configuration, queries,
-retention, and troubleshooting.
+| Dashboard | Purpose |
+| --- | --- |
+| [Overview](http://localhost:3000/d/financial-overview) | HTTP/Kafka volume, outcomes, latency, and logs from all apps |
+| [Failures](http://localhost:3000/d/financial-failures) | HTTP failures, worker handler errors, and warning/error logs |
+| [Investigation](http://localhost:3000/d/financial-investigation) | Logs and traces filtered by service, text, span, and duration |
 
-### Current MVP limits
+Grafana opens with anonymous **Editor** access for local exploration. Use the
+filters at the top of each dashboard and adjust the time range to your requests.
 
-- Local deployment: anonymous Grafana access, unauthenticated telemetry backends,
-  filesystem storage, and single instances. This is not a production deployment.
-- Notifications use the noop client; no external delivery is performed.
-- No outbox/inbox, idempotency, application retry policy, dead-letter handling, or authentication.
-  A database write can succeed before event publication fails.
-- Kafka readiness is not guaranteed by container startup. Inspect app logs and
-  consumer processing before relying on the asynchronous flows.
-- Worker metrics measure handler completion, not Kafka lag or offset commits.
-  Service graphs, alert rules, SLOs, and production availability remain future work.
+> **Investigation tip**
+>
+> Expand a JSON operational log and click **View trace**. You can also copy the
+> API response's `X-Trace-ID` into [Explore](http://localhost:3000/explore) with
+> **Tempo** selected. Choose **Loki** there to query logs directly.
 
-### Run the core API locally
+[Collection and configuration](docs/RUNBOOK.md#grafana-observability-mvp)
+&middot; [Dashboard filters](docs/RUNBOOK.md#dashboard-filters)
+&middot; [Troubleshooting](docs/RUNBOOK.md#troubleshooting)
 
-```bash
-make run-core
-```
+## API
 
-### Regenerate dependency injection
+Base path: `/v1/financial`. Wallet amounts are integer **cents**.
 
-```bash
-make wire
-```
+| Method | Route | Operation |
+| --- | --- | --- |
+| `GET` | `/health` | Application liveness |
+| `POST` | `/accounts` | Create an account and wallet |
+| `GET` | `/accounts?phone=...` | Find an account |
+| `DELETE` | `/accounts` | Delete an account by phone |
+| `POST` | `/wallets/credits` | Credit an active wallet |
+| `POST` | `/wallets/debits` | Debit a wallet subject to balance and risk checks |
 
-### Regenerate mocks
+See [Swagger](http://localhost:8080/docs/financial/index.html) for payloads and
+responses. The health endpoint does not verify database or Kafka connectivity.
 
-Linux/macOS:
+## Development
 
-```bash
-make mocks-linux
-```
+The stack combines **Gin**, **PostgreSQL**, **Kafka**, **OpenTelemetry**, **Grafana**,
+**Logrus**, **Swagger**, **Wire**, **GoMock**, and **Testify**.
 
-Windows PowerShell:
-
-```powershell
-make mocks-windows
-```
-
-### Run tests
-
-```bash
+```sh
 go test ./...
+go vet ./...
+go build ./...
 ```
 
-## API Surface
+<details>
+<summary><strong>Code generation and host execution</strong></summary>
 
-The core API is mounted under:
+| Command | Purpose |
+| --- | --- |
+| `make wire` | Regenerate dependency injection for all three apps |
+| `make docs-core` | Regenerate Swagger documentation |
+| `make mocks-linux` | Regenerate mocks on Linux/macOS |
+| `make mocks-windows` | Regenerate mocks on Windows PowerShell |
+| `make run-core` | Run the API on the host |
 
-```text
-/v1/financial
-```
+Use the [host configuration instructions](docs/RUNBOOK.md#configuration) before running
+outside Compose; Kafka currently advertises its internal service address.
 
-Available groups:
+</details>
 
-- `GET /health`
-- `POST /accounts`
-- `GET /accounts`
-- `DELETE /accounts`
-- `POST /wallets/credits`
-- `POST /wallets/debits`
+### Automated checks
 
-For request and response details, use the generated Swagger documentation.
+CI runs on direct pushes to `main`, optional PRs targeting `main`, and manual
+execution. It checks formatting, `vet`, tests with race detection, builds, and
+Compose configuration. PRs are not required by this setup.
 
-## Engineering Direction
+The **Go vulnerabilities** workflow runs manually from GitHub Actions. Existing
+toolchain and dependency findings are pending remediation. See
+[repository automation](docs/RUNBOOK.md#repository-automation) for details.
 
-This project is meant to keep evolving toward a more realistic production system. Important areas of study and improvement include:
+## Engineering roadmap
 
-- Stronger transactional guarantees around wallet operations.
-- Outbox/inbox patterns for reliable event publishing and consumption.
-- Idempotency keys for financial commands.
-- Better retry, dead-letter, and poison-message handling in workers.
-- Richer metrics and service-level indicators.
-- Integration tests with real PostgreSQL and Kafka.
-- Security hardening around authentication, authorization, and secrets.
-- CI pipelines, linting, and automated quality gates.
+Next areas of study, beyond the current MVP:
 
-## What This Project Demonstrates
+- Integration tests that start the stack and validate complete financial flows.
+- Transactional outbox/inbox and idempotent event processing.
+- Stronger financial transaction guarantees and concurrency validation.
+- Application retries, dead-letter handling, and controlled reprocessing.
+- Authentication, authorization, dependency remediation, and production hardening.
+- Kafka lag visibility, service-level objectives, alert rules, and service graphs.
 
-Go Financial Core is a deliberate practice project for backend engineering depth. It shows how to structure a Go codebase around real architectural concerns instead of framework-first code, and how financial workflows can be modeled with a mix of synchronous APIs, transactional data, asynchronous events, and operational observability.
+> **Project note**
+>
+> The current deployment uses development credentials, anonymous Grafana access,
+> unauthenticated telemetry backends, and single-instance local storage. Worker
+> metrics measure handler completion, not lag or offset commits. A database write
+> can succeed before event publication fails.
 
-### Shared telemetry code
+## License
 
-`pkg/telemetry` centralizes OpenTelemetry SDK setup, tracing helpers, operational
-metrics, correlated JSON logs, HTTP instrumentation, and context propagation.
-Apps use `telemetry.TraceWithError`, `telemetry.TraceHandler`, and
-`Settings.Telemetry` for instrumentation and configuration.
-Transport-specific Kafka header adaptation remains in `pkg/messaging/kafka`.
+Licensed under the [MIT License](LICENSE). Copyright (c) 2026 didiegovieira.
 
-## Automated study checks
+---
 
-Push directly to `main` or open an optional PR targeting `main`. The same CI runs
-after direct pushes and when a PR is opened, reopened, or updated with new commits.
-It can also be started manually in GitHub Actions. It checks formatting, vet, race detection,
-builds, and Compose configuration. A failed run reports a problem to investigate;
-these files do not require pull requests or configure branch protection.
-
-The **Go vulnerabilities** workflow is manual: open Actions, select it, and choose
-**Run workflow** when you want to inspect dependencies. Existing toolchain and
-dependency findings remain pending remediation. There are no scheduled scans,
-automated dependency PRs, or mandatory contribution templates.
+<div align="center">
+<strong>Build it. Trace it. Understand it.</strong><br />
+<sub>A practical learning project by <a href="https://github.com/didiegovieira">@didiegovieira</a>.</sub>
+<p><a href="https://github.com/didiegovieira">GitHub</a> &middot; <a href="https://www.linkedin.com/in/didiegovieira/">LinkedIn</a></p>
+</div>

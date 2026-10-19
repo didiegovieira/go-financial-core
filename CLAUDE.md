@@ -2,4 +2,4 @@
 
 @AGENTS.md
 
-Use `RUNBOOK.md` for local operation and troubleshooting.
+Use `docs/RUNBOOK.md` for local operation and troubleshooting.
