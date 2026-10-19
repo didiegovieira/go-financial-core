@@ -1,9 +1,17 @@
+.PHONY: help up wire wire-core wire-notifications wire-audit docs-core mocks-linux mocks-windows run-core
+
 help:
 	@echo "Usage: make [target]"
 	@echo "Targets:"
-	@echo "  wire    - Generate code using Wire for dependency injection"
+	@echo "  up      - Build and start all services with Docker Compose"
+	@echo "  wire    - Generate dependency injection code for all apps"
 	@echo "  mocks-linux    - Generate mocks on Linux/macOS"
 	@echo "  mocks-windows  - Generate mocks on Windows PowerShell"
+
+up:
+	docker compose up --build -d
+
+wire: wire-core wire-audit wire-notifications
 
 wire-core:
 	wire gen ./apps/core/di

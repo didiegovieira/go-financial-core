@@ -64,6 +64,9 @@ This keeps business rules independent from frameworks and external systems while
 
 ## Local Development
 
+See [RUNBOOK.md](RUNBOOK.md) for startup, diagnostics, configuration, and data
+handling. Repository guidance for coding agents lives in [AGENTS.md](AGENTS.md).
+
 ### Requirements
 
 - Go 1.25+
@@ -74,7 +77,7 @@ This keeps business rules independent from frameworks and external systems while
 ### Run the full stack
 
 ```bash
-docker compose up --build
+make up
 ```
 
 The main API is exposed on:
@@ -104,9 +107,7 @@ make run-core
 ### Regenerate dependency injection
 
 ```bash
-make wire-core
-make wire-audit
-make wire-notifications
+make wire
 ```
 
 ### Regenerate mocks

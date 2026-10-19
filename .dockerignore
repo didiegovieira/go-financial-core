@@ -1,0 +1,17 @@
+.git/
+.vscode/
+.idea/
+
+# Local environment files
+**/.env
+**/.env.*
+!**/.env.example
+
+# Build and test artifacts
+bin/
+dist/
+tmp/
+**/*.exe
+**/*.test
+**/*.out
+**/*.coverprofile
