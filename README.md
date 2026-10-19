@@ -80,6 +80,30 @@ handling. Repository guidance for coding agents lives in [AGENTS.md](AGENTS.md).
 make up
 ```
 
+`make up` starts the containers without waiting for app initialization or migrations.
+Check app logs before loading optional demo accounts, wallets, and an audit record:
+
+```sh
+make seed
+```
+
+See [local seed procedures](RUNBOOK.md#local-demo-seeds-poc). SQL seeds do not
+publish Kafka events.
+
+The local workflow is `make up`, check initialization/migrations, `make seed`,
+then use the application. When finished, shut down with:
+
+```sh
+make down
+```
+
+`make down` only stops services, preserving containers and data. PostgreSQL and
+Kafka use named volumes, so subsequent `make up` runs retain their data.
+
+For a complete local reset, `make drop` removes containers, networks, and volumes,
+deleting database and Kafka data. The next `make up` initializes a fresh environment;
+run `make seed` after initialization if you want demo data again.
+
 The main API is exposed on:
 
 ```text

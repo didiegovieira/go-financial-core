@@ -54,7 +54,15 @@ versions, commands, and runtime configuration.
 
 ## Local environment and data
 
-- `make up` builds and starts all Compose services in the background.
+- Local workflow: `make up`, verify app initialization/migrations in the logs,
+  then `make seed` for demo data. After using the application, run `make down`
+  to stop services while preserving containers and data. PostgreSQL and Kafka
+  use named volumes that survive container recreation. `make drop` removes
+  containers, networks, and volumes, deleting local data; run it only when a
+  destructive reset is explicitly requested.
+- `make up` builds and starts Compose services without waiting for app
+  initialization/migrations. `make seed` optionally applies local SQL data
+  directly through PostgreSQL; it does not wait for startup or publish events.
 - Compose currently reads `.env.example` directly. Per-app `environment` entries
   supply the database name and override shared settings.
 - A root `.env` is loaded by apps running on the host; it is ignored by Git and

@@ -75,7 +75,9 @@ services:
     networks:
       - financial-core-network
     volumes:
+        - postgres-data:/var/lib/postgresql/data
         - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+        - ./docker/postgres/seeds:/seeds:ro
 
   kafka:
     image: apache/kafka:4.0.0
@@ -92,6 +94,9 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+    volumes:
+      - kafka-data:/var/lib/kafka/data
     networks:
       - financial-core-network
 
@@ -103,6 +108,10 @@ services:
       - "4318:4318"   # OTLP HTTP
     networks:
       - financial-core-network
+
+volumes:
+  postgres-data:
+  kafka-data:
 
 networks:
   financial-core-network:
