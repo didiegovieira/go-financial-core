@@ -1,5 +1,7 @@
 # Go Financial Core
 
+[![CI](https://github.com/didiegovieira/go-financial-core/actions/workflows/ci.yml/badge.svg)](https://github.com/didiegovieira/go-financial-core/actions/workflows/ci.yml)
+
 Go Financial Core is a financial backend MVP built with Go, PostgreSQL, and Kafka. It provides account and wallet operations, asynchronous audit and notification workflows, and integrated logs, metrics, and distributed tracing.
 
 The MVP runs locally with Docker Compose and serves as a practical backend engineering project. Notification delivery is simulated. Production reliability and security features remain planned work; see the current limits below.
@@ -228,3 +230,16 @@ metrics, correlated JSON logs, HTTP instrumentation, and context propagation.
 Apps use `telemetry.TraceWithError`, `telemetry.TraceHandler`, and
 `Settings.Telemetry` for instrumentation and configuration.
 Transport-specific Kafka header adaptation remains in `pkg/messaging/kafka`.
+
+## Automated study checks
+
+Push directly to `main` or open an optional PR targeting `main`. The same CI runs
+after direct pushes and when a PR is opened, reopened, or updated with new commits.
+It can also be started manually in GitHub Actions. It checks formatting, vet, race detection,
+builds, and Compose configuration. A failed run reports a problem to investigate;
+these files do not require pull requests or configure branch protection.
+
+The **Go vulnerabilities** workflow is manual: open Actions, select it, and choose
+**Run workflow** when you want to inspect dependencies. Existing toolchain and
+dependency findings remain pending remediation. There are no scheduled scans,
+automated dependency PRs, or mandatory contribution templates.

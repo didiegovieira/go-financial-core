@@ -390,3 +390,27 @@ values and the time range. Use All and clear text fields when a selection yields
 no data. The service selector maps the app names to both Compose log service
 labels and OpenTelemetry service identities. Refresh the dashboard after changes;
 for new dashboard files, restart Grafana if provisioning has not picked them up.
+
+## Repository automation
+
+This study project supports direct pushes to `main` and optional PRs. The same CI
+runs after a push to `main`, when a PR targeting `main` is opened/reopened/updated,
+or by manual dispatch. It does not require a PR or configure branch protection.
+Its single job checks formatting, `go vet ./...`, `go test -race ./...`,
+`go build ./...`, and `docker compose config --quiet`.
+
+Race detection needs CGO and a C compiler, available on the Linux hosted runner.
+On a host without those prerequisites, run the normal suite with `go test ./...`.
+A failed CI run is feedback on the pushed commit; it does not undo the push.
+
+The **Go vulnerabilities** workflow is manual only. In GitHub Actions, select it
+and choose **Run workflow**. Its report artifact retains 7 days and is uploaded
+when findings fail the job. Existing findings are not suppressed. To run locally:
+
+```sh
+go run golang.org/x/vuln/cmd/govulncheck@v1.1.4 ./...
+```
+
+No workflow publishes images, deploys applications, or modifies repository rules.
+No Dependabot schedule, required PR templates, or mandatory review process is
+configured by this setup. Workflows become available after pushing their files.
