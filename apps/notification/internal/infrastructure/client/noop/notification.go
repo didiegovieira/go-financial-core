@@ -5,7 +5,7 @@ import (
 
 	"github.com/didiegovieira/go-financial-core/apps/notification/internal/domain/entity"
 	"github.com/didiegovieira/go-financial-core/pkg/log/implement"
-	"github.com/didiegovieira/go-financial-core/pkg/metrics"
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 )
 
 type NotificationClient struct {
@@ -19,7 +19,7 @@ func NewNotificationClient(logger implement.Logger) *NotificationClient {
 }
 
 func (c *NotificationClient) Send(ctx context.Context, notification entity.Notification) (err error) {
-	_, finish := metrics.TraceWithError(ctx, "Client.Notification.Noop.Send", &err)
+	_, finish := telemetry.TraceWithError(ctx, "Client.Notification.Noop.Send", &err)
 	defer finish()
 
 	c.logger.Infof(

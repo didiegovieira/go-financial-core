@@ -20,7 +20,7 @@ type Worker struct {
 }
 
 func (w *Worker) Start() {
-	w.App.Start(settings.Settings.Metrics.Name)
+	w.App.Start(settings.Settings.Telemetry.Name)
 	w.App.Logger.Infof("Notification worker started")
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)

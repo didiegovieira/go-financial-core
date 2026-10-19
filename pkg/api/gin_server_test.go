@@ -6,15 +6,36 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var testServerPort = "3008"
+
+func TestGinContextPreservesRequestTraceAndCancellation(t *testing.T) {
+	server := NewGinServer(&http.Server{})
+	parent := trace.NewSpanContext(trace.SpanContextConfig{
+		TraceID: trace.TraceID{1}, SpanID: trace.SpanID{2}, TraceFlags: trace.FlagsSampled,
+	})
+	ctx, cancel := context.WithCancel(trace.ContextWithSpanContext(context.Background(), parent))
+	defer cancel()
+	server.GetRouter().GET("/trace", func(c *gin.Context) {
+		assert.Equal(t, parent, trace.SpanContextFromContext(c))
+		cancel()
+		assert.Equal(t, context.Canceled, c.Err())
+		assert.Equal(t, ctx.Done(), c.Done())
+		c.Status(http.StatusOK)
+	})
+	recorder := httptest.NewRecorder()
+	server.GetRouter().ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/trace", nil).WithContext(ctx))
+	assert.Equal(t, http.StatusOK, recorder.Code)
+}
 
 func TestNewGinServer(t *testing.T) {
 	httpServer := &http.Server{}

@@ -1,8 +1,8 @@
 # Go Financial Core
 
-Go Financial Core is an event-driven financial backend built as a senior-level engineering portfolio project and as a practical laboratory for learning production-grade software engineering with Go.
+Go Financial Core is a financial backend MVP built with Go, PostgreSQL, and Kafka. It provides account and wallet operations, asynchronous audit and notification workflows, and integrated logs, metrics, and distributed tracing.
 
-The goal is not to be a small CRUD sample. The project is designed to look and evolve like a real company system: multiple applications, explicit domain boundaries, asynchronous communication, transactional persistence, observability, tests, generated dependencies, and infrastructure that can be run locally.
+The MVP runs locally with Docker Compose and serves as a practical backend engineering project. Notification delivery is simulated. Production reliability and security features remain planned work; see the current limits below.
 
 ## Purpose
 
@@ -36,8 +36,8 @@ The repository is organized as a small distributed system:
 - `apps/core`: HTTP API for account and wallet operations.
 - `apps/audit`: Kafka worker responsible for recording audit events.
 - `apps/notification`: Kafka worker responsible for notification workflows.
-- `pkg`: shared infrastructure primitives such as API server helpers, logging, errors, metrics, validation, Kafka utilities, and base use case contracts.
-- `docker`: local database bootstrap scripts.
+- `pkg`: shared infrastructure primitives such as API server helpers, logging, errors, telemetry, validation, Kafka utilities, and base use case contracts.
+- `docker`: database bootstrap/seeds and observability configuration, data sources, and dashboards.
 
 Each application follows the same general layering:
 
@@ -55,7 +55,7 @@ This keeps business rules independent from frameworks and external systems while
 - Gin for HTTP APIs
 - PostgreSQL for transactional persistence
 - Kafka for event-driven messaging
-- OpenTelemetry and Jaeger for tracing
+- OpenTelemetry and Alloy for collection; Grafana, Tempo, Loki, and Prometheus for traces, logs, and metrics
 - Logrus for structured logging
 - Swagger for API documentation
 - Google Wire for dependency injection
@@ -69,7 +69,7 @@ handling. Repository guidance for coding agents lives in [AGENTS.md](AGENTS.md).
 
 ### Requirements
 
-- Go 1.25+
+- Go 1.25.6 (matching `go.mod`)
 - Docker and Docker Compose
 - Make
 - Wire, when regenerating dependency injection code
@@ -87,7 +87,7 @@ Check app logs before loading optional demo accounts, wallets, and an audit reco
 make seed
 ```
 
-See [local seed procedures](RUNBOOK.md#local-demo-seeds-poc). SQL seeds do not
+See [local seed procedures](RUNBOOK.md#local-demo-seeds). SQL seeds do not
 publish Kafka events.
 
 The local workflow is `make up`, check initialization/migrations, `make seed`,
@@ -101,7 +101,7 @@ make down
 Kafka use named volumes, so subsequent `make up` runs retain their data.
 
 For a complete local reset, `make drop` removes containers, networks, and volumes,
-deleting database and Kafka data. The next `make up` initializes a fresh environment;
+deleting database, Kafka, and observability data. The next `make up` initializes a fresh environment;
 run `make seed` after initialization if you want demo data again.
 
 The main API is exposed on:
@@ -116,11 +116,42 @@ Swagger documentation is available at:
 http://localhost:8080/docs/financial
 ```
 
-Jaeger UI is available at:
+### Observability MVP
 
-```text
-http://localhost:16686
-```
+The three apps use the official OpenTelemetry Go SDK through `pkg/telemetry`.
+Traces and metrics go through Alloy to Tempo and Prometheus. Alloy collects
+container stdout/stderr into Loki. Grafana correlates JSON operational logs with
+traces, including context propagated through Kafka headers.
+
+Grafana is available at `http://localhost:3000` with anonymous Editor access for
+local investigation. Provisioned dashboards include:
+
+| Dashboard | Local URL | Purpose |
+| --- | --- | --- |
+| Overview | [Open overview](http://localhost:3000/d/financial-overview) | HTTP/Kafka volume, outcomes, latency, and app logs |
+| Failures | [Open failures](http://localhost:3000/d/financial-failures) | HTTP failures, worker handler errors, and warning/error logs |
+| Investigation | [Open investigation](http://localhost:3000/d/financial-investigation) | Filter logs and search traces by service, span, and duration |
+
+Use the filters at the top and the time picker to narrow results. Expand a JSON
+log record and click **View trace**, or copy the API response's `X-Trace-ID` into
+[Grafana Explore](http://localhost:3000/explore) with the Tempo source selected.
+SQL seeds do not generate events or worker traces; use the API to exercise them.
+
+See [observability operations](RUNBOOK.md#grafana-observability-mvp) and
+[dashboard filters](RUNBOOK.md#dashboard-filters) for configuration, queries,
+retention, and troubleshooting.
+
+### Current MVP limits
+
+- Local deployment: anonymous Grafana access, unauthenticated telemetry backends,
+  filesystem storage, and single instances. This is not a production deployment.
+- Notifications use the noop client; no external delivery is performed.
+- No outbox/inbox, idempotency, application retry policy, dead-letter handling, or authentication.
+  A database write can succeed before event publication fails.
+- Kafka readiness is not guaranteed by container startup. Inspect app logs and
+  consumer processing before relying on the asynchronous flows.
+- Worker metrics measure handler completion, not Kafka lag or offset commits.
+  Service graphs, alert rules, SLOs, and production availability remain future work.
 
 ### Run the core API locally
 
@@ -189,3 +220,11 @@ This project is meant to keep evolving toward a more realistic production system
 ## What This Project Demonstrates
 
 Go Financial Core is a deliberate practice project for backend engineering depth. It shows how to structure a Go codebase around real architectural concerns instead of framework-first code, and how financial workflows can be modeled with a mix of synchronous APIs, transactional data, asynchronous events, and operational observability.
+
+### Shared telemetry code
+
+`pkg/telemetry` centralizes OpenTelemetry SDK setup, tracing helpers, operational
+metrics, correlated JSON logs, HTTP instrumentation, and context propagation.
+Apps use `telemetry.TraceWithError`, `telemetry.TraceHandler`, and
+`Settings.Telemetry` for instrumentation and configuration.
+Transport-specific Kafka header adaptation remains in `pkg/messaging/kafka`.

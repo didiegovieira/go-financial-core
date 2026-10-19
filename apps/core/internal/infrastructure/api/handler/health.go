@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/didiegovieira/go-financial-core/pkg/api"
-	"github.com/didiegovieira/go-financial-core/pkg/metrics"
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,7 +22,7 @@ type Health struct {
 // @Router       /v1/payments/health [get]
 func (h *Health) Handle() func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		finish := metrics.TraceHandler(ctx, "Handler.Health")
+		finish := telemetry.TraceHandler(ctx, "Handler.Health")
 		defer finish()
 
 		h.Presenter.Present(ctx, gin.H{

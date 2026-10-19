@@ -11,7 +11,7 @@ import (
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/application/port/repository"
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/domain/event"
 	"github.com/didiegovieira/go-financial-core/pkg/base"
-	"github.com/didiegovieira/go-financial-core/pkg/metrics"
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 )
 
 type DeleteByPhoneUseCase = base.UseCase[dto.DeleteByPhoneInput, *dto.DeleteByPhoneOutput]
@@ -35,7 +35,7 @@ func NewDeleteByPhone(
 }
 
 func (c *DeleteByPhone) Execute(ctx context.Context, input dto.DeleteByPhoneInput) (out *dto.DeleteByPhoneOutput, err error) {
-	ctx, finish := metrics.TraceWithError(ctx, "UseCase.Account.DeleteByPhone", &err)
+	ctx, finish := telemetry.TraceWithError(ctx, "UseCase.Account.DeleteByPhone", &err)
 	defer finish()
 
 	accountEntity := mapper.MapDeleteByPhoneInputToAccount(input)

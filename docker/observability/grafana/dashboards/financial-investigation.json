@@ -1,0 +1,276 @@
+{
+  "uid": "financial-investigation",
+  "title": "Financial Core - Investigar logs e traces",
+  "schemaVersion": 39,
+  "version": 1,
+  "tags": [
+    "financial-core",
+    "mvp"
+  ],
+  "timezone": "browser",
+  "refresh": "10s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "service",
+        "label": "Servico",
+        "type": "custom",
+        "query": "API : financial-core.*,Audit : audit.*,Notifications : notification.*",
+        "options": [
+          {
+            "text": "API",
+            "value": "financial-core.*",
+            "selected": false
+          },
+          {
+            "text": "Audit",
+            "value": "audit.*",
+            "selected": false
+          },
+          {
+            "text": "Notifications",
+            "value": "notification.*",
+            "selected": false
+          }
+        ],
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".+",
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "hide": 0,
+        "skipUrlSync": false
+      },
+      {
+        "name": "log_level",
+        "label": "Logs: nivel",
+        "type": "custom",
+        "query": "DEBUG,INFO,WARN,ERROR",
+        "options": [
+          {
+            "text": "DEBUG",
+            "value": "DEBUG",
+            "selected": false
+          },
+          {
+            "text": "INFO",
+            "value": "INFO",
+            "selected": false
+          },
+          {
+            "text": "WARN",
+            "value": "WARN",
+            "selected": false
+          },
+          {
+            "text": "ERROR",
+            "value": "ERROR",
+            "selected": false
+          }
+        ],
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "hide": 0,
+        "skipUrlSync": false
+      },
+      {
+        "name": "log_search",
+        "label": "Logs: contem texto",
+        "type": "textbox",
+        "query": "",
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "options": [
+          {
+            "text": "",
+            "value": "",
+            "selected": true
+          }
+        ]
+      },
+      {
+        "name": "trace_id",
+        "label": "Logs: Trace ID",
+        "type": "textbox",
+        "query": "",
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "options": [
+          {
+            "text": "",
+            "value": "",
+            "selected": true
+          }
+        ]
+      },
+      {
+        "name": "span_name",
+        "label": "Traces: nome do span (regex)",
+        "type": "textbox",
+        "query": ".*",
+        "current": {
+          "text": ".*",
+          "value": ".*"
+        },
+        "options": [
+          {
+            "text": ".*",
+            "value": ".*",
+            "selected": true
+          }
+        ]
+      },
+      {
+        "name": "min_duration",
+        "label": "Traces: duracao minima",
+        "type": "custom",
+        "query": "0ms,10ms,100ms,1s,5s",
+        "current": {
+          "text": "0ms",
+          "value": "0ms"
+        },
+        "options": [
+          {
+            "text": "0ms",
+            "value": "0ms",
+            "selected": true
+          },
+          {
+            "text": "10ms",
+            "value": "10ms",
+            "selected": false
+          },
+          {
+            "text": "100ms",
+            "value": "100ms",
+            "selected": false
+          },
+          {
+            "text": "1s",
+            "value": "1s",
+            "selected": false
+          },
+          {
+            "text": "5s",
+            "value": "5s",
+            "selected": false
+          }
+        ]
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "Como filtrar",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "Escolha **Servico** para filtrar logs e traces. **Nivel, texto e Trace ID** filtram os logs; **nome do span e duracao minima** filtram a lista de traces.\n\nPara uma execucao exata, cole o `X-Trace-ID` da API no filtro de logs, expanda o registro e clique em **View trace**. Os filtros de logs nao restringem a lista de traces abaixo. Limpe os campos para ampliar a busca."
+      }
+    },
+    {
+      "id": 2,
+      "type": "logs",
+      "title": "Logs correlacionados",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 24,
+        "h": 14
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service=~\"${service:pipe}\"} |= ${log_search:doublequote} |= ${trace_id:doublequote} | json | level=~\"${log_level:regex}\"",
+          "queryType": "range",
+          "maxLines": 500
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending",
+        "enableLogDetails": true,
+        "dedupStrategy": "none"
+      }
+    },
+    {
+      "id": 3,
+      "type": "table",
+      "title": "Traces por servico, span e duracao",
+      "datasource": {
+        "type": "tempo",
+        "uid": "tempo"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 18,
+        "w": 24,
+        "h": 12
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "traceql",
+          "query": "{ resource.service.name =~ \"${service:pipe}\" && name =~ ${span_name:doublequote} && duration >= ${min_duration:raw} }",
+          "limit": 50,
+          "tableType": "traces"
+        }
+      ],
+      "options": {
+        "showHeader": true
+      }
+    }
+  ],
+  "links": [
+    {
+      "title": "Visao geral",
+      "url": "/d/financial-overview",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "Falhas",
+      "url": "/d/financial-failures",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    }
+  ]
+}

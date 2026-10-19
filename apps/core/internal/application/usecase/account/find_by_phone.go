@@ -8,7 +8,7 @@ import (
 	mapper "github.com/didiegovieira/go-financial-core/apps/core/internal/application/mapper/account"
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/application/port/repository"
 	"github.com/didiegovieira/go-financial-core/pkg/base"
-	"github.com/didiegovieira/go-financial-core/pkg/metrics"
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 )
 
 type FindByPhoneUseCase = base.UseCase[dto.FindByPhoneInput, *dto.FindByPhoneOutput]
@@ -26,7 +26,7 @@ func NewFindByPhone(
 }
 
 func (c *FindByPhone) Execute(ctx context.Context, input dto.FindByPhoneInput) (out *dto.FindByPhoneOutput, err error) {
-	ctx, finish := metrics.TraceWithError(ctx, "UseCase.Account.FindByPhone", &err)
+	ctx, finish := telemetry.TraceWithError(ctx, "UseCase.Account.FindByPhone", &err)
 	defer finish()
 
 	accountEntity := mapper.MapFindByPhoneInputToAccount(input)

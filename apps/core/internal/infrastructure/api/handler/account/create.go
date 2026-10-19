@@ -7,7 +7,7 @@ import (
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/application/usecase/account"
 
 	"github.com/didiegovieira/go-financial-core/pkg/api"
-	"github.com/didiegovieira/go-financial-core/pkg/metrics"
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,7 +26,7 @@ type Create struct {
 // @Router       /v1/financial/accounts [post]
 func (c *Create) Handle() func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		finish := metrics.TraceHandler(ctx, "Handler.Account.Create")
+		finish := telemetry.TraceHandler(ctx, "Handler.Account.Create")
 		defer finish()
 
 		var input dto.CreateInput

@@ -7,7 +7,7 @@ import (
 	"github.com/didiegovieira/go-financial-core/apps/audit/internal/application/dto"
 	"github.com/didiegovieira/go-financial-core/apps/audit/internal/application/port/repository"
 	"github.com/didiegovieira/go-financial-core/apps/audit/internal/domain/entity"
-	"github.com/didiegovieira/go-financial-core/pkg/metrics"
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 	"github.com/google/uuid"
 )
 
@@ -26,7 +26,7 @@ func NewRecordAudit(repository repository.AuditLogRepository) *RecordAudit {
 }
 
 func (r *RecordAudit) Execute(ctx context.Context, input dto.RecordAuditInput) (err error) {
-	ctx, finish := metrics.TraceWithError(ctx, "UseCase.Audit.RecordAudit", &err)
+	ctx, finish := telemetry.TraceWithError(ctx, "UseCase.Audit.RecordAudit", &err)
 	defer finish()
 
 	return r.repository.Save(ctx, entity.AuditLog{

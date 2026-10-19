@@ -15,7 +15,7 @@ type (
 		HttpServer  HttpServerSpecification
 		Database    DatabaseSpecification
 		Kafka       KafkaSpecification
-		Metrics     MetricsSpecification
+		Telemetry   TelemetrySpecification
 	}
 
 	HttpServerSpecification struct {
@@ -56,10 +56,9 @@ type (
 		ConsumerGroupID string   `envconfig:"KAFKA_CONSUMER_GROUP_ID" default:"notification-service"`
 	}
 
-	MetricsSpecification struct {
+	TelemetrySpecification struct {
 		Name            string `envconfig:"OTEL_SERVICE_NAME" default:"github.com/didiegovieira/go-financial-core"`
 		Url             string `envconfig:"OTEL_EXPORTER_OTLP_ENDPOINT" default:"http://localhost:4317"`
-		Token           string `envconfig:"SPLUNK_ACCESS_TOKEN"`
 		Resource        string `envconfig:"OTEL_RESOURCE_ATTRIBUTES" default:"service.name=github.com/didiegovieira/go-financial-core"`
 		TracesExporter  string `envconfig:"OTEL_TRACES_EXPORTER" default:"otlp"`
 		MetricsExporter string `envconfig:"OTEL_METRICS_EXPORTER" default:"none"`

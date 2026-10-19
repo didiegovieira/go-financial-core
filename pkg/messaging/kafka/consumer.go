@@ -3,6 +3,9 @@ package kafka
 import (
 	"context"
 	"errors"
+	"time"
+
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 
 	kafkago "github.com/segmentio/kafka-go"
 )
@@ -20,6 +23,7 @@ type Handler interface {
 type Consumer struct {
 	reader  *kafkago.Reader
 	handler Handler
+	group   string
 }
 
 func NewConsumer(config ConsumerConfig, handler Handler) (*Consumer, error) {
@@ -42,6 +46,7 @@ func NewConsumer(config ConsumerConfig, handler Handler) (*Consumer, error) {
 			CommitInterval: config.CommitInterval,
 		}),
 		handler: handler,
+		group:   config.GroupID,
 	}, nil
 }
 
@@ -55,7 +60,8 @@ func (c *Consumer) Start(ctx context.Context) error {
 			return err
 		}
 
-		err = c.handler.Handle(ctx, Message{
+		messageCtx := extractContext(ctx, message.Headers)
+		err = c.handle(messageCtx, Message{
 			Topic: message.Topic,
 			Key:   string(message.Key),
 			Value: message.Value,
@@ -71,6 +77,12 @@ func (c *Consumer) Start(ctx context.Context) error {
 			return err
 		}
 	}
+}
+
+func (c *Consumer) handle(ctx context.Context, message Message) (err error) {
+	started := time.Now()
+	defer func() { telemetry.ObserveKafka(ctx, message.Topic, c.group, started, err) }()
+	return c.handler.Handle(ctx, message)
 }
 
 func (c *Consumer) Stop() error {

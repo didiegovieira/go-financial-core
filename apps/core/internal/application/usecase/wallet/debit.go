@@ -17,7 +17,7 @@ import (
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/domain/risk"
 	"github.com/didiegovieira/go-financial-core/pkg/base"
 	appErrors "github.com/didiegovieira/go-financial-core/pkg/errors"
-	"github.com/didiegovieira/go-financial-core/pkg/metrics"
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 )
 
 type DebitUseCase = base.UseCase[dto.DebitInput, *dto.DebitOutput]
@@ -43,7 +43,7 @@ func NewDebit(
 }
 
 func (c *Debit) Execute(ctx context.Context, input dto.DebitInput) (out *dto.DebitOutput, err error) {
-	ctx, finish := metrics.TraceWithError(ctx, "UseCase.Wallet.Debit", &err)
+	ctx, finish := telemetry.TraceWithError(ctx, "UseCase.Wallet.Debit", &err)
 	defer finish()
 
 	decision := c.RiskPolicy.Evaluate(input.Amount)

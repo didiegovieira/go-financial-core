@@ -16,7 +16,7 @@ import (
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/domain/event"
 	"github.com/didiegovieira/go-financial-core/pkg/base"
 	appErrors "github.com/didiegovieira/go-financial-core/pkg/errors"
-	"github.com/didiegovieira/go-financial-core/pkg/metrics"
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 )
 
 type CreditUseCase = base.UseCase[dto.CreditInput, *dto.CreditOutput]
@@ -40,7 +40,7 @@ func NewCredit(
 }
 
 func (c *Credit) Execute(ctx context.Context, input dto.CreditInput) (out *dto.CreditOutput, err error) {
-	ctx, finish := metrics.TraceWithError(ctx, "UseCase.Wallet.Credit", &err)
+	ctx, finish := telemetry.TraceWithError(ctx, "UseCase.Wallet.Credit", &err)
 	defer finish()
 
 	phone := normalizer.Phone(input.Phone)

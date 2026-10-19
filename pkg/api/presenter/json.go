@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	appErr "github.com/didiegovieira/go-financial-core/pkg/errors"
-	"github.com/didiegovieira/go-financial-core/pkg/metrics"
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -37,7 +37,7 @@ func NewJsonWithConfig(config JsonConfig) Json {
 }
 
 func (j Json) setTraceID(c *gin.Context, response gin.H) {
-	traceID := metrics.GetTraceID(c.Request.Context())
+	traceID := telemetry.GetTraceID(c.Request.Context())
 	if traceID == "" {
 		return
 	}

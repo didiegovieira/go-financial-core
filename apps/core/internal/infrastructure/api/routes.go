@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/settings"
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/swaggo/swag/example/basic/docs"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
 const (
@@ -17,7 +17,8 @@ const (
 
 func (a *Application) SetupRoutes() {
 	router := a.Server.GetRouter()
-	router.Use(otelgin.Middleware(settings.Settings.Metrics.Name))
+	router.Use(telemetry.TraceHTTP(settings.Settings.Telemetry.Name))
+	router.Use(telemetry.ObserveHTTP())
 
 	// Swagger Docs
 	docs.SwaggerInfo.Title = "Go Financial Core API"

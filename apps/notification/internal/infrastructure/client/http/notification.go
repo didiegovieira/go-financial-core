@@ -6,7 +6,7 @@ import (
 
 	"github.com/didiegovieira/go-financial-core/apps/notification/internal/domain/entity"
 	sharedhttp "github.com/didiegovieira/go-financial-core/pkg/http"
-	"github.com/didiegovieira/go-financial-core/pkg/metrics"
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 )
 
 type NotificationClient struct {
@@ -22,7 +22,7 @@ func NewNotificationClient(wrapper sharedhttp.Wrapper, url string) *Notification
 }
 
 func (c *NotificationClient) Send(ctx context.Context, notification entity.Notification) (err error) {
-	ctx, finish := metrics.TraceWithError(ctx, "Client.Notification.HTTP.Send", &err)
+	ctx, finish := telemetry.TraceWithError(ctx, "Client.Notification.HTTP.Send", &err)
 	defer finish()
 
 	body, err := json.Marshal(notification)

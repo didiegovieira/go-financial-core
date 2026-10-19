@@ -40,7 +40,7 @@ type Application struct {
 }
 
 func (a *Application) Start() {
-	a.BaseApp.Start(settings.Settings.Metrics.Name)
+	a.BaseApp.Start(settings.Settings.Telemetry.Name)
 
 	a.SetupRoutes()
 

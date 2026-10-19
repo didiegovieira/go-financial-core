@@ -16,6 +16,9 @@ type GinServer[T any] struct {
 
 func NewGinServer[T *gin.Engine](httpServer *http.Server) *GinServer[T] {
 	router := gin.Default()
+	// Handlers pass *gin.Context to use cases; preserve request trace context
+	// and cancellation when it is used as a context.Context.
+	router.ContextWithFallback = true
 	httpServer.Handler = router
 
 	return &GinServer[T]{
@@ -29,12 +32,12 @@ func (s *GinServer[T]) GetRouter() T {
 }
 
 func (s *GinServer[T]) Start() error {
-	fmt.Printf("Starting web server on port %s", s.server.Addr)
+	fmt.Printf("Starting web server on port %s\n", s.server.Addr)
 	return s.server.ListenAndServe()
 }
 
 func (s *GinServer[T]) Shutdown(ctx context.Context) error {
-	fmt.Printf("Stopping web server")
+	fmt.Println("Stopping web server")
 	return s.server.Shutdown(ctx)
 }
 

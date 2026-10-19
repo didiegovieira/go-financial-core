@@ -7,7 +7,7 @@ import (
 	"github.com/didiegovieira/go-financial-core/apps/notification/internal/application/dto"
 	"github.com/didiegovieira/go-financial-core/apps/notification/internal/application/port/client"
 	"github.com/didiegovieira/go-financial-core/apps/notification/internal/domain/entity"
-	"github.com/didiegovieira/go-financial-core/pkg/metrics"
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 	"github.com/google/uuid"
 )
 
@@ -26,7 +26,7 @@ func NewSendNotification(client client.NotificationClient) *SendNotification {
 }
 
 func (s *SendNotification) Execute(ctx context.Context, input dto.SendNotificationInput) (err error) {
-	ctx, finish := metrics.TraceWithError(ctx, "UseCase.Notification.SendNotification", &err)
+	ctx, finish := telemetry.TraceWithError(ctx, "UseCase.Notification.SendNotification", &err)
 	defer finish()
 
 	notification := entity.Notification{

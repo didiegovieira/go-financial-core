@@ -9,7 +9,7 @@ import (
 	domainerror "github.com/didiegovieira/go-financial-core/apps/core/internal/domain/error"
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/infrastructure/database/postgres/mapper"
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/infrastructure/database/postgres/query"
-	"github.com/didiegovieira/go-financial-core/pkg/metrics"
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 	"github.com/google/uuid"
 )
 
@@ -22,7 +22,7 @@ func NewWalletRepository(db *sql.DB) *WalletRepository {
 }
 
 func (r *WalletRepository) Create(ctx context.Context, wallet entity.Wallet) (err error) {
-	ctx, finish := metrics.TraceWithError(ctx, "Repository.Wallet.Create", &err)
+	ctx, finish := telemetry.TraceWithError(ctx, "Repository.Wallet.Create", &err)
 	defer finish()
 
 	walletModel := mapper.WalletToModel(wallet)
@@ -39,7 +39,7 @@ func (r *WalletRepository) Create(ctx context.Context, wallet entity.Wallet) (er
 }
 
 func (r *WalletRepository) DeleteByAccountID(ctx context.Context, accountID uuid.UUID) (err error) {
-	ctx, finish := metrics.TraceWithError(ctx, "Repository.Wallet.DeleteByAccountID", &err)
+	ctx, finish := telemetry.TraceWithError(ctx, "Repository.Wallet.DeleteByAccountID", &err)
 	defer finish()
 
 	_, err = r.db.ExecContext(
@@ -51,7 +51,7 @@ func (r *WalletRepository) DeleteByAccountID(ctx context.Context, accountID uuid
 }
 
 func (r *WalletRepository) Credit(ctx context.Context, wallet entity.Wallet) (updatedWallet *entity.Wallet, err error) {
-	ctx, finish := metrics.TraceWithError(ctx, "Repository.Wallet.Credit", &err)
+	ctx, finish := telemetry.TraceWithError(ctx, "Repository.Wallet.Credit", &err)
 	defer finish()
 
 	walletModel := mapper.WalletToModel(wallet)
@@ -74,7 +74,7 @@ func (r *WalletRepository) Credit(ctx context.Context, wallet entity.Wallet) (up
 }
 
 func (r *WalletRepository) Debit(ctx context.Context, wallet entity.Wallet) (updatedWallet *entity.Wallet, err error) {
-	ctx, finish := metrics.TraceWithError(ctx, "Repository.Wallet.Debit", &err)
+	ctx, finish := telemetry.TraceWithError(ctx, "Repository.Wallet.Debit", &err)
 	defer finish()
 
 	walletModel := mapper.WalletToModel(wallet)

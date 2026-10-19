@@ -3,7 +3,7 @@ package runtime
 import (
 	"github.com/didiegovieira/go-financial-core/pkg/log"
 	"github.com/didiegovieira/go-financial-core/pkg/log/implement"
-	"github.com/didiegovieira/go-financial-core/pkg/metrics"
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -14,7 +14,7 @@ type App struct {
 
 func (a *App) Start(serviceName string) {
 	log.Logger = a.Logger
-	metrics.Tracer = a.Tracer
+	telemetry.Tracer = a.Tracer
 
 	a.Logger.Tag("service", serviceName)
 }

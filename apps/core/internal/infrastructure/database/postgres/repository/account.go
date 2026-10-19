@@ -9,7 +9,7 @@ import (
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/infrastructure/database/postgres/mapper"
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/infrastructure/database/postgres/model"
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/infrastructure/database/postgres/query"
-	"github.com/didiegovieira/go-financial-core/pkg/metrics"
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 )
 
 type AccountRepository struct {
@@ -21,7 +21,7 @@ func NewAccountRepository(db *sql.DB) *AccountRepository {
 }
 
 func (r *AccountRepository) Create(ctx context.Context, account entity.Account) (err error) {
-	ctx, finish := metrics.TraceWithError(ctx, "Repository.Account.Create", &err)
+	ctx, finish := telemetry.TraceWithError(ctx, "Repository.Account.Create", &err)
 	defer finish()
 
 	accountModel := mapper.AccountToModel(account)
@@ -42,7 +42,7 @@ func (r *AccountRepository) Create(ctx context.Context, account entity.Account) 
 }
 
 func (r *AccountRepository) FindByDocument(ctx context.Context, account entity.Account) (foundAccount *entity.Account, err error) {
-	ctx, finish := metrics.TraceWithError(ctx, "Repository.Account.FindByDocument", &err)
+	ctx, finish := telemetry.TraceWithError(ctx, "Repository.Account.FindByDocument", &err)
 	defer finish()
 
 	accountModel := mapper.AccountToModel(account)
@@ -79,7 +79,7 @@ func (r *AccountRepository) FindByDocument(ctx context.Context, account entity.A
 }
 
 func (r *AccountRepository) FindByPhone(ctx context.Context, account entity.Account) (foundAccount *entity.Account, err error) {
-	ctx, finish := metrics.TraceWithError(ctx, "Repository.Account.FindByPhone", &err)
+	ctx, finish := telemetry.TraceWithError(ctx, "Repository.Account.FindByPhone", &err)
 	defer finish()
 
 	accountModel := mapper.AccountToModel(account)
@@ -114,7 +114,7 @@ func (r *AccountRepository) FindByPhone(ctx context.Context, account entity.Acco
 }
 
 func (r *AccountRepository) DeleteByPhone(ctx context.Context, account entity.Account) (err error) {
-	ctx, finish := metrics.TraceWithError(ctx, "Repository.Account.DeleteByPhone", &err)
+	ctx, finish := telemetry.TraceWithError(ctx, "Repository.Account.DeleteByPhone", &err)
 	defer finish()
 
 	accountModel := mapper.AccountToModel(account)

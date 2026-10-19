@@ -6,7 +6,7 @@ import (
 	dto "github.com/didiegovieira/go-financial-core/apps/core/internal/application/dto/wallet"
 	walletUseCase "github.com/didiegovieira/go-financial-core/apps/core/internal/application/usecase/wallet"
 	"github.com/didiegovieira/go-financial-core/pkg/api"
-	"github.com/didiegovieira/go-financial-core/pkg/metrics"
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,7 +26,7 @@ type Credit struct {
 // @Router       /v1/financial/wallets/credits [post]
 func (c *Credit) Handle() func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		finish := metrics.TraceHandler(ctx, "Handler.Wallet.Credit")
+		finish := telemetry.TraceHandler(ctx, "Handler.Wallet.Credit")
 		defer finish()
 
 		var input dto.CreditInput

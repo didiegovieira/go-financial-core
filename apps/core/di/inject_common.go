@@ -4,13 +4,13 @@ import (
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/application"
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/settings"
 	"github.com/didiegovieira/go-financial-core/pkg/log/implement"
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 	"github.com/google/wire"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 )
 
 func provideTracer() trace.Tracer {
-	return otel.Tracer(settings.Settings.Metrics.Name)
+	return telemetry.NewTracer(settings.Settings.Telemetry.Name)
 }
 
 func provideLogger() implement.Logger {

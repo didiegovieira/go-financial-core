@@ -6,7 +6,7 @@ import (
 	appmessaging "github.com/didiegovieira/go-financial-core/apps/core/internal/application/port/messaging"
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/settings"
 	sharedkafka "github.com/didiegovieira/go-financial-core/pkg/messaging/kafka"
-	"github.com/didiegovieira/go-financial-core/pkg/metrics"
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 )
 
 type Producer struct {
@@ -29,7 +29,7 @@ func NewProducerFromSettings() (*Producer, error) {
 }
 
 func (p *Producer) Publish(ctx context.Context, event appmessaging.Event) (err error) {
-	ctx, finish := metrics.TraceWithError(ctx, "Messaging.Kafka.Publish", &err)
+	ctx, finish := telemetry.TraceWithError(ctx, "Messaging.Kafka.Publish", &err)
 	defer finish()
 
 	topic, ok := topicByEventName[event.Name]
@@ -46,7 +46,7 @@ func (p *Producer) Publish(ctx context.Context, event appmessaging.Event) (err e
 }
 
 func (p *Producer) PublishRaw(ctx context.Context, topic string, key string, payload []byte) (err error) {
-	ctx, finish := metrics.TraceWithError(ctx, "Messaging.Kafka.PublishRaw", &err)
+	ctx, finish := telemetry.TraceWithError(ctx, "Messaging.Kafka.PublishRaw", &err)
 	defer finish()
 
 	return p.producer.PublishRaw(ctx, topic, key, payload)

@@ -12,7 +12,7 @@ import (
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/domain/entity"
 	"github.com/didiegovieira/go-financial-core/apps/core/internal/domain/event"
 	"github.com/didiegovieira/go-financial-core/pkg/base"
-	"github.com/didiegovieira/go-financial-core/pkg/metrics"
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 )
 
 type CreateUseCase = base.UseCase[dto.CreateInput, *dto.CreateOutput]
@@ -36,7 +36,7 @@ func NewCreate(
 }
 
 func (c *Create) Execute(ctx context.Context, input dto.CreateInput) (out *dto.CreateOutput, err error) {
-	ctx, finish := metrics.TraceWithError(ctx, "UseCase.Account.Create", &err)
+	ctx, finish := telemetry.TraceWithError(ctx, "UseCase.Account.Create", &err)
 	defer finish()
 
 	accountEntity := mapper.MapCreateInputToAccount(input)

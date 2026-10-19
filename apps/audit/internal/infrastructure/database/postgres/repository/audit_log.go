@@ -7,7 +7,7 @@ import (
 	"github.com/didiegovieira/go-financial-core/apps/audit/internal/domain/entity"
 	"github.com/didiegovieira/go-financial-core/apps/audit/internal/infrastructure/database/postgres/mapper"
 	"github.com/didiegovieira/go-financial-core/apps/audit/internal/infrastructure/database/postgres/query"
-	"github.com/didiegovieira/go-financial-core/pkg/metrics"
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 )
 
 type AuditLogRepository struct {
@@ -19,7 +19,7 @@ func NewAuditLogRepository(db *sql.DB) *AuditLogRepository {
 }
 
 func (r *AuditLogRepository) Save(ctx context.Context, auditLog entity.AuditLog) (err error) {
-	ctx, finish := metrics.TraceWithError(ctx, "Repository.Audit.AuditLog.Save", &err)
+	ctx, finish := telemetry.TraceWithError(ctx, "Repository.Audit.AuditLog.Save", &err)
 	defer finish()
 
 	auditLogModel := mapper.AuditLogToModel(auditLog)

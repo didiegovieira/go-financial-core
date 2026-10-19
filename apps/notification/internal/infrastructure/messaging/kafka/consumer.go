@@ -4,7 +4,7 @@ import (
 	"context"
 
 	sharedkafka "github.com/didiegovieira/go-financial-core/pkg/messaging/kafka"
-	"github.com/didiegovieira/go-financial-core/pkg/metrics"
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 )
 
 type Consumer struct {
@@ -23,14 +23,14 @@ func NewConsumer(config Config, handler *Handler) (*Consumer, error) {
 }
 
 func (c *Consumer) Start(ctx context.Context) (err error) {
-	ctx, finish := metrics.TraceWithError(ctx, "Consumer.Kafka.Notification.Start", &err)
+	ctx, finish := telemetry.TraceWithError(ctx, "Consumer.Kafka.Notification.Start", &err)
 	defer finish()
 
 	return c.consumer.Start(ctx)
 }
 
 func (c *Consumer) Stop() (err error) {
-	_, finish := metrics.TraceWithError(context.Background(), "Consumer.Kafka.Notification.Stop", &err)
+	_, finish := telemetry.TraceWithError(context.Background(), "Consumer.Kafka.Notification.Stop", &err)
 	defer finish()
 
 	return c.consumer.Stop()

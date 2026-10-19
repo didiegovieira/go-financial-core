@@ -10,7 +10,7 @@ services:
         condition: service_healthy
       kafka:
         condition: service_started
-      jaeger:
+      alloy:
         condition: service_started
     ports:
       - "8080:8080"
@@ -29,6 +29,8 @@ services:
       context: .
       dockerfile: ./apps/audit/Dockerfile
     depends_on:
+      alloy:
+        condition: service_started
       postgres:
         condition: service_healthy
       kafka:
@@ -48,6 +50,8 @@ services:
       context: .
       dockerfile: ./apps/notification/Dockerfile
     depends_on:
+      alloy:
+        condition: service_started
       kafka:
         condition: service_started
     env_file: .env.example
@@ -100,18 +104,89 @@ services:
     networks:
       - financial-core-network
 
-  jaeger:
-    image: jaegertracing/all-in-one:1.76.0
+  tempo:
+    image: grafana/tempo:2.9.0
+    command: ["-config.file=/etc/tempo.yaml"]
+    # The local MVP volume is initialized by Tempo itself.
+    user: "0:0"
+    volumes:
+      - ./docker/observability/tempo.yaml:/etc/tempo.yaml:ro
+      - tempo-data:/var/tempo
     ports:
-      - "16686:16686" # UI
-      - "4317:4317"   # OTLP gRPC
-      - "4318:4318"   # OTLP HTTP
+      - "127.0.0.1:3200:3200" # readiness and trace API
+    networks:
+      - financial-core-network
+
+  grafana:
+    image: grafana/grafana:12.3.0
+    depends_on:
+      - tempo
+      - loki
+      - prometheus
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Editor
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - ./docker/observability/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/tempo.yaml:ro
+      - ./docker/observability/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/financial.yaml:ro
+      - ./docker/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    networks:
+      - financial-core-network
+
+  loki:
+    image: grafana/loki:3.6.0
+    command: ["-config.file=/etc/loki/config.yaml"]
+    user: "0:0"
+    volumes:
+      - ./docker/observability/loki.yaml:/etc/loki/config.yaml:ro
+      - loki-data:/loki
+    ports:
+      - "127.0.0.1:3100:3100"
+    networks:
+      - financial-core-network
+
+  prometheus:
+    image: prom/prometheus:v3.7.3
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--web.enable-remote-write-receiver", "--storage.tsdb.retention.time=7d"]
+    volumes:
+      - ./docker/observability/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+    networks:
+      - financial-core-network
+
+  alloy:
+    image: grafana/alloy:v1.11.3
+    command: ["run", "--server.http.listen-addr=0.0.0.0:12345", "--storage.path=/var/lib/alloy/data", "/etc/alloy/config.alloy"]
+    environment:
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-go-financial-core}
+    depends_on:
+      - tempo
+      - loki
+      - prometheus
+    volumes:
+      - ./docker/observability/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - alloy-data:/var/lib/alloy/data
+    ports:
+      - "127.0.0.1:4317:4317"
+      - "127.0.0.1:4318:4318"
+      - "127.0.0.1:12345:12345"
     networks:
       - financial-core-network
 
 volumes:
   postgres-data:
   kafka-data:
+  tempo-data:
+  grafana-data:
+  loki-data:
+  prometheus-data:
+  alloy-data:
 
 networks:
   financial-core-network:

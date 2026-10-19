@@ -7,7 +7,7 @@ import (
 	"github.com/didiegovieira/go-financial-core/apps/notification/internal/application/dto"
 	"github.com/didiegovieira/go-financial-core/apps/notification/internal/application/usecase"
 	sharedkafka "github.com/didiegovieira/go-financial-core/pkg/messaging/kafka"
-	"github.com/didiegovieira/go-financial-core/pkg/metrics"
+	"github.com/didiegovieira/go-financial-core/pkg/telemetry"
 )
 
 type Handler struct {
@@ -21,7 +21,7 @@ func NewHandler(sendNotification usecase.SendNotificationUseCase) *Handler {
 }
 
 func (h *Handler) Handle(ctx context.Context, message sharedkafka.Message) (err error) {
-	ctx, finish := metrics.TraceWithError(ctx, "Handler.Kafka.Notification.Handle", &err)
+	ctx, finish := telemetry.TraceWithError(ctx, "Handler.Kafka.Notification.Handle", &err)
 	defer finish()
 
 	eventName := eventNameByTopic[message.Topic]

@@ -40,10 +40,11 @@ func (p *Producer) PublishRaw(ctx context.Context, topic string, key string, pay
 	}
 
 	return p.writer.WriteMessages(ctx, kafkago.Message{
-		Topic: topic,
-		Key:   []byte(key),
-		Value: payload,
-		Time:  time.Now().UTC(),
+		Topic:   topic,
+		Key:     []byte(key),
+		Value:   payload,
+		Headers: injectContext(ctx),
+		Time:    time.Now().UTC(),
 	})
 }
 

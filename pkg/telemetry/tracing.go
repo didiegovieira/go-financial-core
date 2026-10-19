@@ -1,14 +1,18 @@
-package metrics
+package telemetry
 
 import (
 	"context"
 
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 )
 
 var Tracer trace.Tracer = trace.NewNoopTracerProvider().Tracer("noop")
+
+// NewTracer returns an instrumentation scope from the configured SDK provider.
+func NewTracer(scope string) trace.Tracer { return otel.Tracer(scope) }
 
 // Core tracing functions
 func StartSpan(ctx context.Context, spanName string, opts ...trace.SpanStartOption) (context.Context, trace.Span) {
